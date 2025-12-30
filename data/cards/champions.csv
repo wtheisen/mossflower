@@ -1,0 +1,4 @@
+id,name,affinities,starting_bag,tableau_slots,quest_ids
+matthias,Matthias of Redwall,"mouse;sword","mouse:2;squirrel:1;food:1;inexperience:3",5,"matthias-quest-1;matthias-quest-2;matthias-quest-3"
+mariel,Mariel of Redwall,"hare;otter","hare:2;otter:1;food:1;inexperience:3",5,"mariel-quest-1;mariel-quest-2;mariel-quest-3"
+brome,Brome and Felldoh,"squirrel;mole","squirrel:2;mole:1;food:1;inexperience:3",5,"brome-quest-1;brome-quest-2;brome-quest-3"

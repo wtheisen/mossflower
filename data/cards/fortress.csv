@@ -1,0 +1,3 @@
+id,name,slots,starting_vermin,text
+fort-cluny-siege,Cluny Siege Engine,4,4,"Increase Conquest Track gains by +1 if not cleared."
+fort-marsh-bridge,Marsh Bridge,3,3,"Adds 1 Vermin to the weakest location every night."

@@ -1,0 +1,148 @@
+Mossflower Game Rulebook:
+​
+In Mossflower you play as a novice adventurer in the world of Redwall, dreaming one
+day of becoming a Legend. Mossflower is a co-op bag-building push-your-luck tableau builder.
+Setup:
+At the start of the game:
+1.​ Randomly deal out a Champion to each player.
+2.​ Give each player a bag and add to that bag their Champion’s starting Critters.
+3.​ Each Player places their Champions Quests, Quest side up, halfway underneath
+their Champion card such that only the Quest is visible.
+4.​ Place Redwall Infirmary, The Great Hall, and The Cellar beneath the Adventure
+Row. This will be the “Discovered Locations” area.
+5.​ Reveal three cards from the Adventure Deck.
+6.​ Shuffle the Horde deck and reveal one.
+7.​ Shuffle and place the Fortress and Villain decks for the Horde above the
+Adventure row and reveal the top of the Fortress deck.
+8.​ Shuffle the Horde’s Captains into the Adventure deck and then add two more
+cards to the Adventure Row.
+9.​ Add a Vermin to the Conquest track for each Player.
+10.​The Player with the Mouse Champion goes first, or if not in play, the Player who
+has most recently seen a Mouse.
+Gameplay:
+​
+The core of the gameplay revolves around drawing cubes from your bag in order to
+perform a number of activities. With the exception of Combat, you may pull cubes one at a time
+and are free to stop whenever you wish. However, if you draw any combination of two White or
+Black cubes, you must stop drawing and your attempt has failed.
+
+Day Structure:
+Rounds in Mossflower consist of a single Day, which has three phases:
+1.​ Day - During the day players may perform one of the following options in turn order, with
+play proceeding to the left:
+a.​ Combat - A player may engage in combat with the Vermin on a card.
+b.​ Action - Players may activate an Action on a card (includes Recruiting)
+2.​ Dusk - During the dusk, players assign cubes drawn during their turn to one of two
+options:
+a.​ Tableau - You may place cubes on cards in your Tableau
+b.​ Worker - You may place Critters on your Location to improve actions and defend
+against vermin
+3.​ Night
+a.​ During Night the enemy advances.
+i.​ Resolve any Night Vermin Abilities
+ii.​ Remove any Occupied cards from the Adventure Row. If you remove at
+least one card, add a Vermin to the Conquest Track.
+iii.​ Players must add Vermin to Cards equal to the number of Vermin on the
+Conquest Track
+iv.​ Add a Vermin to the Conquest Track
+b.​ During Night, Players rest, allowing them to return up to two Critters from their
+Tableau to their bag.
+
+Daytime Actions:
+Combat - On a card, Players may choose to enter combat. During combat, players add all
+Vermin cubes from their current location to their bag. Players then draw cubes from the bag until
+they’ve drawn at least as many cubes as they added. If players are unhappy with the results of
+the initial draw, they may continue drawing from their bag. Combat has two outcomes: Victory
+and Defeat.
+Victory (More allied cubes drawn than Vermin cubes) - Players have defeated the
+Vermin. Return all Vermin drawn to the Supply. If you fought at least 4 Vermin, remove a
+Vermin from the Conquest Track and if you fought at least 7 Vermin, you may replace an
+inexperience cube with an experience token.
+Defeat (Lesser or equal number of allied cubes drawn compared to Vermin cubes) Players add all drawn Vermin back to the card. Add a Vermin to the Conquest track.
+Reinforcements - During Combat, other Champions may also draw Cubes from their bag
+after you have drawn the minimum amount. These count towards your total drawn for the
+purpose of resolving combat and are added to your pool of Cubes afterwards (except
+inexperience cubes, those stay with the Player that drew them). This does not count as a
+Daytime action for the other player. These reinforcement draws are subject to the normal
+bust rules.
+Action - Players may activate an action by drawing cubes from their bag until they stop (either
+by choice or forced). Actions cannot be activated if there are Vermin on them.
+Helping Hands - During Actions, other Champions may also draw Cubes from their bag
+after you have drawn. These count towards your total draw for the purpose of the action
+and are added to your supply afterwards (except inexperience cubes, those stay with the
+Player that drew them). This does not count as a Daytime action for the other player.
+These helping hand draws are subject to the normal bust rules.
+
+Discovering - Whenever a Champion activates a Location that is currently in the
+Adventure Row for the first time, move the Location from the Adventure Row to the
+“Discovered Locations” area.
+Recruit - Players may add a Hero to their tableau from the Adventure Row by drawing
+Food equal to their Cost (the drawn Food is returned to the Supply). Immediately add the
+Hero’s Critters to your bag. If your tableau is full, you must choose a Hero to discard,
+along with all cubes on the Hero. The number of Critters that a Hero comes with is also
+the maximum number of cubes that may be placed on that Hero (there are a few
+exceptions to this that are written on the cards).
+Whenever a Card is removed from the Adventure Row, immediately replace it.
+Dusk Actions:
+During Dusk, players place all cubes drawn during the day to any combination of: Tableau or
+Location. Black (Vermin/Wounds) and White (Inexperience) cubes must be placed in your
+Tableau and White (Inexperience) cubes must go specifically on your Champion.
+Tableau - Cubes placed here may have a variety of effects, depending on the Hero in which they
+were placed. Black cubes added to your Tableau are called “Wounds”. If you must add a cube to
+your Tableau and you have no open slots, you are Exhausted (Food is special, in that during
+Dusk you may choose to return it to the Supply if you don’t have room for it).
+Exhausted:
+If you are required to place a cube in your Tableau and you have no available slots, you
+are “exhausted”. When you are Exhausted, add all Wounds on your Tableau to your
+current Location as Vermin. Then place your meeple on Redwall’s Infirmary and the next
+day you must take the Redwall Infirmary Action.
+Location - You may also place Critters onto the Location you’re currently at. Critters placed on
+Actions are called Workers and are added to the bag of the next player to use the Action. If a
+Vermin were to be added to a Location with a Critter on it, return a Critter to the supply and
+return the Vermin to the supply.
+Night:
+During Night Vermin spread according to the Conquest Track and the Villain may have actions
+to resolve at this time. At Night, players also rest, and may return up to two cubes from their
+Tableau to their bag.
+Conquest Track and Vermin Spread - During Night, Vermin spread. For each Vermin on the
+Conquest Track, players must add a Vermin to a non-tableau Card. The maximum number of
+Vermin a card can have is the same as the maximum number of Critters a card can carry. A
+
+Card containing any amount of Vermin is considered Occupied. If the Conquest Track reaches
+10 the Coalition loses the game.
+Winning the Game - At the beginning of the game, a fortress and villain are revealed. To win the
+game, the Villain must be defeated, which is done by clearing all Vermin off of the Villain's card.
+Players may travel to these and attempt Combats at them to clear Vermin and win the game.
+Players must clear the Fortress before they can access the Villain.
+Fortress, Villain, and Vermin Quests and Inexperience - At the beginning of the game, each Champion begins with three
+inexperience cubes in their bag. They will also shuffle three Quests into the Adventure Deck.
+These Quests allow the associated Champion to exchange one of their inexperience tokens for
+a Mastery token. Mastery tokens count as a wild Critter and you may choose not to return them
+to your bag if Defeated.
+Affinity - All cards have at least one Affinity. When interacting with a card, Cards in your Tableau
+count as 1 Critter of their type if you are interacting with a matching card.
+Examples:
+a.) You are drawing Cubes at the Great Hall and you have two Mouse Heroes in your
+Tableau. You get to pretend you’ve already drawn two Mouse Critters.
+b.) You are playing as a Badger Champion and fighting a Combat against Critters at
+Salamandastron. You get to begin the Combat as if you’d already drawn a Badger cube.
+These Affinity Bonuses do not count towards having already drawn a Cube for the purpose of
+minimum cube draw during Combat.
+Types of Cards:
+​
+
+Heroes:
+
+​
+
+Locations:
+
+​
+
+Items:
+
+​
+
+Quests:
+
+

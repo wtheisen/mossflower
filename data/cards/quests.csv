@@ -1,0 +1,12 @@
+id,name,owner,goal_type,target,requires,text,slots,sequence
+matthias-quest-1,Novice Warrior,matthias,contribute,2,"mouse;squirrel","Place 2 cubes to inspire novices.",2,1
+matthias-quest-2,Defend Redwall,matthias,contribute,3,,"Bolster the Great Hall with 3 cubes.",3,2
+matthias-quest-3,Slay Cluny,matthias,contribute,4,,"Commit 4 cubes to a final assault.",4,3
+mariel-quest-1,Captain of the Skies,mariel,contribute,3,"hare;otter","Supply the resistance with 3 cubes.",3,1
+mariel-quest-2,Horde Harrier,mariel,contribute,2,,"Commit 2 cubes anywhere along the border.",2,2
+mariel-quest-3,Legend of Salamandastron,mariel,contribute,4,,"Supply Salamandastron with 4 cubes.",4,3
+brome-quest-1,Freedom Call,brome,contribute,2,"squirrel;mole","Place 2 cubes among woodland allies.",2,1
+brome-quest-2,Raise the Horde,brome,contribute,3,,"Commit 3 cubes to the uprising.",3,2
+brome-quest-3,Silent Hunter,brome,contribute,4,,"Gather 4 cubes for a precise strike.",4,3
+quest-sword-of-martin,Sword of Martin,,contribute,3,badger,"Place 3 cubes with at least 1 badger to gain 1 mastery token.",3,
+quest-abbey-restoration,Abbey Restoration,,contribute,2,food,"Spend 2 food to heal 1 wound and gain 1 morale.",2,
