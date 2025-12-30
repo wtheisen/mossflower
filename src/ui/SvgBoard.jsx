@@ -16,8 +16,7 @@ export function SvgBoard(props) {
     return <div className="panel">Waiting for setup...</div>;
   }
 
-  const fallbackStage = ctx.phase === 'day' ? StageNames.DAY : StageNames.DUSK;
-  const activeStage = ctx.activePlayers?.[playerID] ?? fallbackStage;
+  const activeStage = ctx.activePlayers?.[playerID] ?? 'waiting';
   const isDayStage = activeStage === StageNames.DAY;
   const isDuskStage = activeStage === StageNames.DUSK;
   const isAssistStage = activeStage === StageNames.ASSIST;

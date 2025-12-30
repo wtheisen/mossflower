@@ -52,7 +52,7 @@ export const MossflowerGame = {
             player.didBust = false;
           }
           G.turnState = null;
-          ctx?.events?.setActivePlayers({
+          ctx.events.setActivePlayers({
             currentPlayer: DAY_STAGE,
             others: ASSIST_STAGE
           });
@@ -534,8 +534,8 @@ function finishDusk(G, ctx) {
   }
   player.drawnThisTurn = [];
   player.didBust = false;
-  ctx?.events?.endStage?.();
-  ctx?.events?.endTurn?.();
+  ctx.events.endStage();
+  ctx.events.endTurn();
 }
 
 function findHeroById(player, targetId) {
@@ -725,7 +725,7 @@ function concludeDayAction(G, ctx) {
   if (outcome) {
     G.log.unshift(outcome);
   }
-  ctx?.events?.setStage?.(DUSK_STAGE);
+  ctx.events.setStage(DUSK_STAGE);
 }
 
 function calculateAffinityBonus(player, card) {
