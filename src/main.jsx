@@ -16,7 +16,8 @@ const MossflowerClient = Client({
       '1': RandomBot,
       '2': RandomBot,
       '3': RandomBot
-    }
+    },
+    persist: true
   }),
   debug: false
 });
