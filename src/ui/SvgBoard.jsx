@@ -16,7 +16,8 @@ export function SvgBoard(props) {
     return <div className="panel">Waiting for setup...</div>;
   }
 
-  const activeStage = ctx.activePlayers?.[playerID] ?? 'waiting';
+  const localCtxStage = G.__localCtx?.activePlayers?.[playerID];
+  const activeStage = ctx.activePlayers?.[playerID] ?? localCtxStage ?? 'waiting';
   const isDayStage = activeStage === StageNames.DAY;
   const isDuskStage = activeStage === StageNames.DUSK;
   const isAssistStage = activeStage === StageNames.ASSIST;
@@ -334,7 +335,7 @@ export function SvgBoard(props) {
             <div key={player.id} className={`ally-row ${player.id === ctx.currentPlayer ? 'ally-row--active' : ''}`}>
               <div>
                 <strong>{player.name}</strong>
-                <p className="small-note">{stageLabels[ctx.activePlayers?.[player.id]] ?? stageLabels.waiting}</p>
+                <p className="small-note">{stageLabels[ctx.activePlayers?.[player.id] ?? G.__localCtx?.activePlayers?.[player.id]] ?? stageLabels.waiting}</p>
               </div>
               <div className="ally-meta">
                 <span>Bag {player.bag.length}</span>
