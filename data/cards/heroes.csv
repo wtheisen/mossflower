@@ -1,0 +1,5 @@
+id,name,affinity,slots,cost,critters,ability_text,ability_key
+hero-redwall-sentry,Redwall Sentry,mouse,2,2,"mouse:2","Spend 1 mouse cube for +1 strength while defending.",
+hero-guerilla-scout,Guerrilla Scout,squirrel,3,3,"squirrel:2;mouse:1","Place 1 squirrel cube here to ignore 1 Vermin during combat.",
+hero-salamandastron-veteran,Salamandastron Veteran,"badger;hare",3,4,"hare:2;badger:1","Spend 2 matching cubes here to remove 1 Vermin anywhere.",
+hero-squirrel-1,Squirrel 1,squirrel,3,2,"squirrel:2","When you remove Vermin from a Location, add 1 Food there per Squirrel on this hero.",squirrel-food-cache

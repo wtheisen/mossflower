@@ -1,0 +1,8 @@
+id,name,slots,vermin_limit,action,category
+loc-great-hall,The Great Hall,3,3,"Draw 2 cubes. Convert Food into any critter type this turn.",adventure
+loc-the-cellar,The Cellar,2,2,"Gain 2 Food if you place at least one Worker here.",adventure
+loc-mossflower-border,Mossflower Border,3,3,"Place 1 Worker to add 1 hero from the row to your bag temporarily.",adventure
+loc-salamandastron,Salamandastron,3,4,"Combat actions here reduce required Vermin draws by 1.",adventure
+redwall-infirmary,Redwall Infirmary,3,2,"Remove up to 2 wounds and return the cubes to your bag.",base
+great-hall,The Great Hall (Base),3,3,"Standard rally location. Gain 1 Food.",base
+cellar,The Cellar (Base),2,2,"Gain 1 Food per Worker placed here.",base

@@ -1,0 +1,306 @@
+:root {
+  font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #181818;
+  color: #f9f9f9;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  padding: 1.5rem;
+}
+
+.board-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: #242424;
+  border-radius: 12px;
+  padding: 1rem;
+  flex: 1 1 320px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.panel h2,
+.panel h3 {
+  margin-top: 0;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: #ff874f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.log-area {
+  max-height: 180px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  border-radius: 16px;
+  padding: 0.5rem 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card svg {
+  width: 100%;
+  height: 140px;
+}
+
+.stat-line {
+  font-size: 0.85rem;
+  color: #c7c7c7;
+}
+
+.cube-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.pending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.small-note {
+  font-size: 0.8rem;
+  color: #a8a8a8;
+  margin: 0.1rem 0;
+}
+
+.status-panel .status-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.status-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tag.small {
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+}
+
+.tag-warning {
+  background: rgba(255, 135, 79, 0.2);
+  color: #ffb08d;
+}
+
+.warning {
+  color: #ffb08d;
+  font-weight: 600;
+}
+
+.focus-box {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.6rem;
+  margin: 0.8rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.focus-target {
+  grid-column: span 2;
+}
+
+.assist-panel {
+  border: 1px solid rgba(255, 135, 79, 0.4);
+  background: rgba(255, 135, 79, 0.08);
+}
+
+.bag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.travel-card {
+  position: relative;
+}
+
+.card--highlight {
+  box-shadow: 0 0 0 2px rgba(255, 135, 79, 0.6);
+}
+
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quest-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+}
+
+.quest-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.quest-card--done {
+  border: 1px solid rgba(169, 255, 155, 0.4);
+}
+
+.card--questOwned {
+  border-color: rgba(255, 217, 102, 0.8);
+  box-shadow: 0 0 0 2px rgba(255, 217, 102, 0.25);
+}
+
+.card--horde {
+  border: 1px solid rgba(255, 135, 79, 0.4);
+}
+
+.card--fortress {
+  border: 1px solid rgba(138, 164, 255, 0.45);
+}
+
+.card--villain {
+  border: 1px solid rgba(255, 110, 138, 0.45);
+}
+
+.card--occupied {
+  border: 1px solid rgba(255, 92, 92, 0.5);
+}
+
+.card--quest {
+  border: 1px solid rgba(255, 217, 102, 0.5);
+}
+
+.ally-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ally-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ally-row--active {
+  border: 1px solid rgba(255, 135, 79, 0.5);
+}
+
+.ally-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: right;
+}
+
+.cube-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.helper-list {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
+}
+
+.helper-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.info-tip {
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+  cursor: help;
+  position: relative;
+}
+
+.info-tip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: -0.5rem;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  z-index: 5;
+}
+
+.info-tip:hover::after,
+.info-tip:focus::after {
+  opacity: 1;
+}
