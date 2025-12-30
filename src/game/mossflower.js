@@ -208,16 +208,15 @@ function deepCopy(value) {
 }
 
 function getCurrentPlayer(G, ctx) {
-  if (!ctx) {
-    return G.players?.['0'];
-  }
-  return G.players?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  return G.players?.[context.currentPlayer];
 }
 
 function chooseAction(G, ctx, args) {
   const { targetId, mode = 'action' } = args ?? {};
-  const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const player = getCurrentPlayer(G, context);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || !targetId || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
@@ -293,8 +292,9 @@ function chooseAction(G, ctx, args) {
 }
 
 function travelToLocation(G, ctx, args) {
-  const player = getCurrentPlayer(G, ctx);
-  if (!player || ctx.activePlayers?.[ctx.currentPlayer] !== DAY_STAGE) {
+  const context = ensureContext(ctx, G);
+  const player = getCurrentPlayer(G, context);
+  if (!player || context.activePlayers?.[context.currentPlayer] !== DAY_STAGE) {
     return INVALID_MOVE;
   }
   const { locationId } = args ?? {};
@@ -311,8 +311,9 @@ function travelToLocation(G, ctx, args) {
 }
 
 function drawCube(G, ctx) {
-  const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const player = getCurrentPlayer(G, context);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || !G.turnState || G.turnState.resolved || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
@@ -348,8 +349,9 @@ function countAlliedCubes(cubes) {
 }
 
 function stopDrawing(G, ctx) {
-  const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const player = getCurrentPlayer(G, context);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || !G.turnState || G.turnState.resolved || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
@@ -424,8 +426,9 @@ function increaseConquest(G, delta) {
 
 function assignCubeToTableau(G, ctx, args) {
   const { cubeIndex, targetId } = args ?? {};
-  const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const player = getCurrentPlayer(G, context);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
@@ -450,7 +453,8 @@ function assignCubeToTableau(G, ctx, args) {
 
 function assignCubeToLocation(G, ctx, args) {
   const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
@@ -481,7 +485,8 @@ function assignCubeToLocation(G, ctx, args) {
 
 function discardCube(G, ctx, args) {
   const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
@@ -508,7 +513,8 @@ function assistDraw(G, ctx) {
   if (helperId === G.turnState.playerID) {
     return INVALID_MOVE;
   }
-  if (ctx.activePlayers?.[helperId] !== ASSIST_STAGE) {
+  const context = ensureContext(ctx, G);
+  if (context.activePlayers?.[helperId] !== ASSIST_STAGE) {
     return INVALID_MOVE;
   }
   if (!G.turnState.helpers?.allowed) {
@@ -527,7 +533,8 @@ function assistDraw(G, ctx) {
 
 function finishDusk(G, ctx) {
   const player = getCurrentPlayer(G, ctx);
-  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  const context = ensureContext(ctx, G);
+  const currentStage = context.activePlayers?.[context.currentPlayer];
   if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
@@ -966,9 +973,34 @@ function handleFortressVillainProgress(G, card) {
   return message;
 }
 
+function ensureContext(ctx, G) {
+  if (ctx) {
+    return ctx;
+  }
+  const playOrder = Object.keys(G.players ?? {});
+  if (!G.__localCtx) {
+    G.__localCtx = {
+      currentPlayer: playOrder[0] ?? '0',
+      playOrder,
+      activePlayers: {},
+      _prevActivePlayers: [],
+      _activePlayersMinMoves: {},
+      _activePlayersMaxMoves: {},
+      _activePlayersNumMoves: {},
+      phase: 'day',
+      turn: 0,
+      numMoves: 0
+    };
+  } else {
+    G.__localCtx.playOrder = playOrder;
+  }
+  return G.__localCtx;
+}
+
 function getPlayOrderIds(ctx, G) {
-  if (ctx?.playOrder?.length) {
-    return ctx.playOrder;
+  const context = ensureContext(ctx, G);
+  if (context.playOrder?.length) {
+    return context.playOrder;
   }
   return Object.keys(G.players ?? {});
 }
@@ -978,19 +1010,20 @@ function setActivePlayersSafe(G, ctx, spec) {
     ctx.events.setActivePlayers(spec);
     return;
   }
-  ctx.activePlayers = ctx.activePlayers ?? {};
+  const context = ensureContext(ctx, G);
+  context.activePlayers = context.activePlayers ?? {};
   if (spec?.value) {
-    ctx.activePlayers = spec.value;
+    context.activePlayers = spec.value;
     return;
   }
   if (spec?.currentPlayer) {
-    ctx.activePlayers[ctx.currentPlayer] = spec.currentPlayer;
+    context.activePlayers[context.currentPlayer] = spec.currentPlayer;
   }
   if (spec?.others) {
-    const ids = getPlayOrderIds(ctx, G);
+    const ids = getPlayOrderIds(context, G);
     ids.forEach((playerID) => {
-      if (playerID !== ctx.currentPlayer) {
-        ctx.activePlayers[playerID] = spec.others;
+      if (playerID !== context.currentPlayer) {
+        context.activePlayers[playerID] = spec.others;
       }
     });
   }
@@ -1001,8 +1034,9 @@ function setStageSafe(G, ctx, stage) {
     ctx.events.setStage(stage);
     return;
   }
-  ctx.activePlayers = ctx.activePlayers ?? {};
-  ctx.activePlayers[ctx.currentPlayer] = stage;
+  const context = ensureContext(ctx, G);
+  context.activePlayers = context.activePlayers ?? {};
+  context.activePlayers[context.currentPlayer] = stage;
 }
 
 function endStageSafe(G, ctx) {
@@ -1010,8 +1044,9 @@ function endStageSafe(G, ctx) {
     ctx.events.endStage();
     return;
   }
-  if (ctx?.activePlayers) {
-    ctx.activePlayers[ctx.currentPlayer] = null;
+  const context = ensureContext(ctx, G);
+  if (context.activePlayers) {
+    context.activePlayers[context.currentPlayer] = null;
   }
 }
 
@@ -1020,14 +1055,15 @@ function endTurnSafe(G, ctx) {
     ctx.events.endTurn();
     return;
   }
-  const order = getPlayOrderIds(ctx, G);
+  const context = ensureContext(ctx, G);
+  const order = getPlayOrderIds(context, G);
   if (!order.length) {
     return;
   }
-  const currentIndex = Math.max(0, order.indexOf(ctx?.currentPlayer ?? order[0]));
+  const currentIndex = Math.max(0, order.indexOf(context.currentPlayer ?? order[0]));
   const nextIndex = (currentIndex + 1) % order.length;
-  ctx.currentPlayer = order[nextIndex];
-  setActivePlayersSafe(G, ctx, {
+  context.currentPlayer = order[nextIndex];
+  setActivePlayersSafe(G, context, {
     currentPlayer: DAY_STAGE,
     others: ASSIST_STAGE
   });
