@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Client } from 'boardgame.io/react';
+import { RandomBot } from 'boardgame.io/ai';
 import { MossflowerGame } from './game/mossflower.js';
 import { SvgBoard } from './ui/SvgBoard.jsx';
 import './style.css';
@@ -8,6 +9,10 @@ import './style.css';
 const MossflowerClient = Client({
   game: MossflowerGame,
   board: SvgBoard,
+  numPlayers: 4,
+  ai: {
+    bot: RandomBot
+  },
   debug: false
 });
 
