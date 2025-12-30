@@ -52,7 +52,7 @@ export const MossflowerGame = {
             player.didBust = false;
           }
           G.turnState = null;
-          ctx.events.setActivePlayers({
+          setActivePlayersSafe(G, ctx, {
             currentPlayer: DAY_STAGE,
             others: ASSIST_STAGE
           });
@@ -208,6 +208,9 @@ function deepCopy(value) {
 }
 
 function getCurrentPlayer(G, ctx) {
+  if (!ctx) {
+    return G.players?.['0'];
+  }
   return G.players?.[ctx.currentPlayer];
 }
 
@@ -534,8 +537,8 @@ function finishDusk(G, ctx) {
   }
   player.drawnThisTurn = [];
   player.didBust = false;
-  ctx.events.endStage();
-  ctx.events.endTurn();
+  endStageSafe(G, ctx);
+  endTurnSafe(G, ctx);
 }
 
 function findHeroById(player, targetId) {
@@ -725,7 +728,7 @@ function concludeDayAction(G, ctx) {
   if (outcome) {
     G.log.unshift(outcome);
   }
-  ctx.events.setStage(DUSK_STAGE);
+  setStageSafe(G, ctx, DUSK_STAGE);
 }
 
 function calculateAffinityBonus(player, card) {
@@ -961,6 +964,73 @@ function handleFortressVillainProgress(G, card) {
     message += ' Villain defeated!';
   }
   return message;
+}
+
+function getPlayOrderIds(ctx, G) {
+  if (ctx?.playOrder?.length) {
+    return ctx.playOrder;
+  }
+  return Object.keys(G.players ?? {});
+}
+
+function setActivePlayersSafe(G, ctx, spec) {
+  if (ctx?.events?.setActivePlayers) {
+    ctx.events.setActivePlayers(spec);
+    return;
+  }
+  ctx.activePlayers = ctx.activePlayers ?? {};
+  if (spec?.value) {
+    ctx.activePlayers = spec.value;
+    return;
+  }
+  if (spec?.currentPlayer) {
+    ctx.activePlayers[ctx.currentPlayer] = spec.currentPlayer;
+  }
+  if (spec?.others) {
+    const ids = getPlayOrderIds(ctx, G);
+    ids.forEach((playerID) => {
+      if (playerID !== ctx.currentPlayer) {
+        ctx.activePlayers[playerID] = spec.others;
+      }
+    });
+  }
+}
+
+function setStageSafe(G, ctx, stage) {
+  if (ctx?.events?.setStage) {
+    ctx.events.setStage(stage);
+    return;
+  }
+  ctx.activePlayers = ctx.activePlayers ?? {};
+  ctx.activePlayers[ctx.currentPlayer] = stage;
+}
+
+function endStageSafe(G, ctx) {
+  if (ctx?.events?.endStage) {
+    ctx.events.endStage();
+    return;
+  }
+  if (ctx?.activePlayers) {
+    ctx.activePlayers[ctx.currentPlayer] = null;
+  }
+}
+
+function endTurnSafe(G, ctx) {
+  if (ctx?.events?.endTurn) {
+    ctx.events.endTurn();
+    return;
+  }
+  const order = getPlayOrderIds(ctx, G);
+  if (!order.length) {
+    return;
+  }
+  const currentIndex = Math.max(0, order.indexOf(ctx?.currentPlayer ?? order[0]));
+  const nextIndex = (currentIndex + 1) % order.length;
+  ctx.currentPlayer = order[nextIndex];
+  setActivePlayersSafe(G, ctx, {
+    currentPlayer: DAY_STAGE,
+    others: ASSIST_STAGE
+  });
 }
 
 function createChampionQuestCards(champion) {
