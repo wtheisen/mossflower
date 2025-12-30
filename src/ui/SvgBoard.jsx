@@ -16,10 +16,11 @@ export function SvgBoard(props) {
     return <div className="panel">Waiting for setup...</div>;
   }
 
-  const myStage = me.phase ?? 'waiting';
-  const isDayStage = myStage === StageNames.DAY;
-  const isDuskStage = myStage === StageNames.DUSK;
-  const isAssistStage = myStage === StageNames.ASSIST;
+  const fallbackStage = ctx.phase === 'day' ? StageNames.DAY : StageNames.DUSK;
+  const activeStage = ctx.activePlayers?.[playerID] ?? fallbackStage;
+  const isDayStage = activeStage === StageNames.DAY;
+  const isDuskStage = activeStage === StageNames.DUSK;
+  const isAssistStage = activeStage === StageNames.ASSIST;
   const pending = me.pendingCubes ?? [];
   const drawn = me.drawnThisTurn ?? [];
   const cardPool = buildCardPool(G);
@@ -36,7 +37,7 @@ export function SvgBoard(props) {
       }))
     : [];
   const bagSummary = summarizeBag(me.bag);
-  const stageLabel = stageLabels[myStage] ?? stageLabels.waiting;
+  const stageLabel = stageLabels[activeStage] ?? stageLabels.waiting;
   const canDraw = Boolean(isActive && isDayStage && moves.drawCube);
   const needMoreDraws = Boolean(
     actingTurn &&
@@ -334,7 +335,7 @@ export function SvgBoard(props) {
             <div key={player.id} className={`ally-row ${player.id === ctx.currentPlayer ? 'ally-row--active' : ''}`}>
               <div>
                 <strong>{player.name}</strong>
-                <p className="small-note">{stageLabels[player.phase] ?? stageLabels.waiting}</p>
+                <p className="small-note">{stageLabels[ctx.activePlayers?.[player.id]] ?? stageLabels.waiting}</p>
               </div>
               <div className="ally-meta">
                 <span>Bag {player.bag.length}</span>
