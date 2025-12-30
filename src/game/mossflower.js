@@ -52,7 +52,7 @@ export const MossflowerGame = {
             player.didBust = false;
           }
           G.turnState = null;
-          ctx.events.setActivePlayers({
+          ctx.events?.setActivePlayers({
             currentPlayer: DAY_STAGE,
             others: ASSIST_STAGE
           });
