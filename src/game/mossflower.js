@@ -101,7 +101,8 @@ function setupGame(ctx) {
   const championPool = ctx.random.Shuffle(champions.map((champion) => ({ ...champion })));
   const players = {};
   const activeChampions = [];
-  ctx.playOrder.forEach((playerID, index) => {
+  const playOrder = ctx.playOrder ?? Array.from({ length: ctx.numPlayers }, (_, i) => `${i}`);
+  playOrder.forEach((playerID, index) => {
     const champion = championPool[index % championPool.length];
     activeChampions.push(champion);
     players[playerID] = createPlayerState(playerID, champion);
