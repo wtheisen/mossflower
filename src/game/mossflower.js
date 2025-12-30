@@ -104,7 +104,8 @@ function setupGame(ctx) {
   const championPool = ctx.random.Shuffle(champions.map((champion) => ({ ...champion })));
   const players = {};
   const activeChampions = [];
-  const playOrder = ctx.playOrder ?? Array.from({ length: ctx.numPlayers }, (_, i) => `${i}`);
+  const playerCount = ctx?.numPlayers ?? 4;
+  const playOrder = ctx?.playOrder ?? Array.from({ length: playerCount }, (_, i) => `${i}`);
   playOrder.forEach((playerID, index) => {
     const champion = championPool[index % championPool.length];
     activeChampions.push(champion);
@@ -126,7 +127,7 @@ function setupGame(ctx) {
   return {
     day: 1,
     turnsInPhase: 0,
-    conquestTrack: ctx.numPlayers,
+    conquestTrack: ctx?.numPlayers ?? playerCount,
     adventureDeck,
     adventureRow,
     discoveredLocations,
