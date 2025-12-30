@@ -84,7 +84,7 @@ describe('Day actions', () => {
     dayMoves.drawCube(G, ctx);
 
     expect(player.didBust).toBe(true);
-    expect(player.phase).toBe(StageNames.DUSK);
+    expect(ctx.activePlayers['0']).toBe(StageNames.DUSK);
   });
 
   it('rewards major combat victories with conquest relief and mastery', () => {

@@ -52,7 +52,10 @@ export const MossflowerGame = {
             player.didBust = false;
           }
           G.turnState = null;
-          setPhasesForTurn(G, ctx.currentPlayer);
+          ctx?.events?.setActivePlayers({
+            currentPlayer: DAY_STAGE,
+            others: ASSIST_STAGE
+          });
         },
         onEnd: (G) => {
           G.turnsInPhase = (G.turnsInPhase ?? 0) + 1;
@@ -144,12 +147,6 @@ function setupGame(ctx) {
   };
 }
 
-function setPhasesForTurn(G, activePlayerID) {
-  Object.values(G.players).forEach((player) => {
-    player.phase = player.id === activePlayerID ? StageNames.DAY : StageNames.ASSIST;
-  });
-}
-
 function createPlayerState(playerID, champion) {
   const championCard = {
     id: `champion-${champion.id}`,
@@ -182,8 +179,7 @@ function createPlayerState(playerID, champion) {
     exhaustion: false,
     didBust: false,
     mustVisitInfirmary: false,
-    combatContext: null,
-    phase: StageNames.DAY
+    combatContext: null
   };
 }
 
@@ -218,7 +214,8 @@ function getCurrentPlayer(G, ctx) {
 function chooseAction(G, ctx, args) {
   const { targetId, mode = 'action' } = args ?? {};
   const player = getCurrentPlayer(G, ctx);
-  if (!player || !targetId || player.phase !== StageNames.DAY) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || !targetId || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
   if (G.turnState && !G.turnState.resolved) {
@@ -294,7 +291,7 @@ function chooseAction(G, ctx, args) {
 
 function travelToLocation(G, ctx, args) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || player.phase !== StageNames.DAY) {
+  if (!player || ctx.activePlayers?.[ctx.currentPlayer] !== DAY_STAGE) {
     return INVALID_MOVE;
   }
   const { locationId } = args ?? {};
@@ -312,7 +309,8 @@ function travelToLocation(G, ctx, args) {
 
 function drawCube(G, ctx) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || !G.turnState || G.turnState.resolved || player.phase !== StageNames.DAY) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || !G.turnState || G.turnState.resolved || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
   const cube = pullCubeFromBag(player, ctx);
@@ -348,7 +346,8 @@ function countAlliedCubes(cubes) {
 
 function stopDrawing(G, ctx) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || !G.turnState || G.turnState.resolved || player.phase !== StageNames.DAY) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || !G.turnState || G.turnState.resolved || currentStage !== DAY_STAGE) {
     return INVALID_MOVE;
   }
   if (
@@ -423,7 +422,8 @@ function increaseConquest(G, delta) {
 function assignCubeToTableau(G, ctx, args) {
   const { cubeIndex, targetId } = args ?? {};
   const player = getCurrentPlayer(G, ctx);
-  if (!player || player.phase !== StageNames.DUSK) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
   if (cubeIndex === undefined || cubeIndex === null) {
@@ -447,7 +447,8 @@ function assignCubeToTableau(G, ctx, args) {
 
 function assignCubeToLocation(G, ctx, args) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || player.phase !== StageNames.DUSK) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
   const { cubeIndex } = args ?? {};
@@ -477,7 +478,8 @@ function assignCubeToLocation(G, ctx, args) {
 
 function discardCube(G, ctx, args) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || player.phase !== StageNames.DUSK) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
   const { cubeIndex } = args ?? {};
@@ -503,7 +505,7 @@ function assistDraw(G, ctx) {
   if (helperId === G.turnState.playerID) {
     return INVALID_MOVE;
   }
-  if (helper.phase !== StageNames.ASSIST) {
+  if (ctx.activePlayers?.[helperId] !== ASSIST_STAGE) {
     return INVALID_MOVE;
   }
   if (!G.turnState.helpers?.allowed) {
@@ -522,7 +524,8 @@ function assistDraw(G, ctx) {
 
 function finishDusk(G, ctx) {
   const player = getCurrentPlayer(G, ctx);
-  if (!player || player.phase !== StageNames.DUSK) {
+  const currentStage = ctx.activePlayers?.[ctx.currentPlayer];
+  if (!player || currentStage !== DUSK_STAGE) {
     return INVALID_MOVE;
   }
   while (player.pendingCubes.length > 0) {
@@ -531,7 +534,7 @@ function finishDusk(G, ctx) {
   }
   player.drawnThisTurn = [];
   player.didBust = false;
-  player.phase = StageNames.ASSIST;
+  ctx?.events?.endStage?.();
   ctx?.events?.endTurn?.();
 }
 
@@ -722,7 +725,7 @@ function concludeDayAction(G, ctx) {
   if (outcome) {
     G.log.unshift(outcome);
   }
-  player.phase = StageNames.DUSK;
+  ctx?.events?.setStage?.(DUSK_STAGE);
 }
 
 function calculateAffinityBonus(player, card) {
