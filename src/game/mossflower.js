@@ -73,7 +73,10 @@ export const MossflowerGame = {
           }
         }
       },
-      endIf: (G, ctx) => G.turnsInPhase >= ctx.numPlayers,
+      endIf: (G, ctx) => {
+        const playerCount = ctx?.numPlayers ?? Object.keys(G.players ?? {}).length ?? 1;
+        return G.turnsInPhase >= playerCount;
+      },
       onEnd: (G) => {
         G.turnsInPhase = 0;
       }
