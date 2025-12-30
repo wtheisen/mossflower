@@ -975,6 +975,17 @@ function handleFortressVillainProgress(G, card) {
 
 function ensureContext(ctx, G) {
   if (ctx) {
+    if (!ctx.playOrder || !ctx.playOrder.length) {
+      ctx.playOrder = Object.keys(G.players ?? {});
+    }
+    if (!ctx.currentPlayer) {
+      ctx.currentPlayer = ctx.playOrder?.[0] ?? '0';
+    }
+    ctx.activePlayers = ctx.activePlayers ?? {};
+    ctx._prevActivePlayers = ctx._prevActivePlayers ?? [];
+    ctx._activePlayersMinMoves = ctx._activePlayersMinMoves ?? {};
+    ctx._activePlayersMaxMoves = ctx._activePlayersMaxMoves ?? {};
+    ctx._activePlayersNumMoves = ctx._activePlayersNumMoves ?? {};
     return ctx;
   }
   const playOrder = Object.keys(G.players ?? {});
