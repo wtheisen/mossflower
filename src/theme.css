@@ -1,0 +1,75 @@
+:root {
+  /* Surface colors */
+  --bg-deep: #0e1117;
+  --bg-surface: #171c24;
+  --bg-card: #1e2430;
+  --bg-elevated: #262e3c;
+
+  /* Text */
+  --text-primary: #e2e6ed;
+  --text-secondary: #8b95a5;
+  --text-muted: #5a6474;
+
+  /* Borders */
+  --border-subtle: #2a3344;
+  --border-card: #364155;
+
+  /* Accent */
+  --accent-gold: #c9a84c;
+  --accent-red: #c44b4b;
+
+  /* Cube colors */
+  --cube-mouse: #9a9aa0;
+  --cube-squirrel: #4aaa4a;
+  --cube-hare: #d4b840;
+  --cube-otter: #3d8ec9;
+  --cube-mole: #8b6542;
+  --cube-badger: #c44b4b;
+  --cube-food: #9b59b6;
+  --cube-inexperience: #e0e0e0;
+  --cube-mastery: #f0d060;
+  --cube-vermin: #1a1a1a;
+  --cube-wound: #222222;
+
+  /* Card type borders */
+  --type-champion: var(--accent-gold);
+  --type-hero: #4a90d9;
+  --type-location: #5aaa5a;
+  --type-quest: #b06ad9;
+  --type-fortress: #8b5e3c;
+  --type-villain: #c44b4b;
+
+  /* Sizing */
+  --card-width: 160px;
+  --card-height: 224px;
+  --cube-size: 20px;
+  --slot-size: 18px;
+  --radius: 8px;
+  --radius-sm: 4px;
+
+  /* Font */
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
