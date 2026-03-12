@@ -49,17 +49,19 @@ const styles = {
 
 export default function ActionOverlay({
   targetCard, bag, band, action, busted, bagEmpty, message,
-  onDraw, onRecruit, onCancel,
+  power, bustThreshold, bustCount, drawBonuses,
+  onDraw, onRecruit, onResolveCombat, onCancel,
 }) {
   if (!action) return null;
 
+  const isCombat = action.type === 'combat';
+  const label = isCombat ? 'Combat' : action.type === 'recruit' ? 'Recruiting' : 'Action';
+
   return (
-    <div style={styles.backdrop} onClick={onCancel}>
+    <div style={styles.backdrop} onClick={isCombat ? undefined : onCancel}>
       <div style={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div style={styles.cardSection}>
-          <div style={styles.targetLabel}>
-            {action.type === 'recruit' ? 'Recruiting' : 'Action'}
-          </div>
+          <div style={styles.targetLabel}>{label}</div>
           <Card card={targetCard} selected />
         </div>
         <div style={styles.sidebar}>
@@ -70,8 +72,13 @@ export default function ActionOverlay({
             busted={busted}
             bagEmpty={bagEmpty}
             message={message}
+            power={power}
+            bustThreshold={bustThreshold}
+            bustCount={bustCount}
+            drawBonuses={drawBonuses}
             onDraw={onDraw}
             onRecruit={onRecruit}
+            onResolveCombat={onResolveCombat}
             onCancel={onCancel}
           />
         </div>

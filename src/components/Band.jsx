@@ -56,6 +56,10 @@ const styles = {
     background: '#4a90d9',
     color: '#fff',
   },
+  btnCombat: {
+    background: 'var(--accent-red, #c44b4b)',
+    color: '#fff',
+  },
   btnCancel: {
     background: 'transparent',
     border: '1px solid var(--border-card)',
@@ -75,20 +79,82 @@ const styles = {
     color: 'var(--accent-red)',
     fontWeight: 600,
   },
+  powerRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '6px',
+    fontSize: '12px',
+  },
+  powerLabel: {
+    color: 'var(--text-muted)',
+    fontSize: '10px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    fontWeight: 600,
+  },
+  powerValue: {
+    fontWeight: 700,
+    color: 'var(--accent-gold)',
+    fontSize: '16px',
+  },
+  bustInfo: {
+    fontSize: '10px',
+    color: 'var(--text-muted)',
+    marginBottom: '4px',
+  },
+  triggerMsg: {
+    fontSize: '10px',
+    color: 'var(--accent-gold)',
+    fontWeight: 600,
+    padding: '2px 0',
+  },
 };
 
-export default function Band({ cubes, action, busted, bagEmpty, message, onDraw, onRecruit, onCancel, canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight }) {
+export default function Band({
+  cubes, action, busted, bagEmpty, message, power, bustThreshold, bustCount,
+  drawBonuses,
+  onDraw, onRecruit, onResolveCombat, onCancel,
+  canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight,
+}) {
   const inAction = !!action;
+  const isCombat = action?.type === 'combat';
 
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData('cube-index', String(index));
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  // Recent trigger messages (last 3)
+  const triggerMessages = drawBonuses?.messages?.slice(-3) ?? [];
+
   return (
     <div style={styles.container}>
       <div style={styles.label}>Band (drawn)</div>
       <div style={styles.count}>{cubes.length}</div>
+
+      {/* Power and bust threshold during actions */}
+      {inAction && cubes.length > 0 && (
+        <>
+          <div style={styles.powerRow}>
+            <span style={styles.powerLabel}>Power</span>
+            <span style={styles.powerValue}>{power ?? 0}</span>
+          </div>
+          <div style={styles.bustInfo}>
+            Bust: {bustCount ?? 0}/{bustThreshold ?? 3} bad cubes
+          </div>
+        </>
+      )}
+
+      {/* Trigger notifications */}
+      {inAction && triggerMessages.length > 0 && (
+        <div style={{ marginBottom: '6px' }}>
+          {triggerMessages.map((msg, i) => (
+            <div key={i} style={styles.triggerMsg}>{msg}</div>
+          ))}
+        </div>
+      )}
+
       <div style={styles.cubes}>
         {cubes.length === 0 ? (
           <span style={styles.empty}>
@@ -123,7 +189,7 @@ export default function Band({ cubes, action, busted, bagEmpty, message, onDraw,
               Draw Cube
             </button>
           )}
-          {!busted && cubes.length > 0 && (
+          {!busted && !isCombat && cubes.length > 0 && (
             <button
               style={{ ...styles.btn, ...styles.btnRecruit }}
               onClick={onRecruit}
@@ -131,12 +197,22 @@ export default function Band({ cubes, action, busted, bagEmpty, message, onDraw,
               Recruit
             </button>
           )}
-          <button
-            style={{ ...styles.btn, ...styles.btnCancel }}
-            onClick={onCancel}
-          >
-            {busted ? 'Dismiss' : 'Cancel'}
-          </button>
+          {isCombat && cubes.length >= (action.verminAdded ?? 0) && (
+            <button
+              style={{ ...styles.btn, ...styles.btnCombat }}
+              onClick={onResolveCombat}
+            >
+              Resolve Combat
+            </button>
+          )}
+          {!isCombat && (
+            <button
+              style={{ ...styles.btn, ...styles.btnCancel }}
+              onClick={onCancel}
+            >
+              {busted ? 'Dismiss' : 'Cancel'}
+            </button>
+          )}
         </div>
       )}
 
@@ -146,7 +222,7 @@ export default function Band({ cubes, action, busted, bagEmpty, message, onDraw,
             style={{ ...styles.btn, ...styles.btnDraw }}
             onClick={onEndDay}
           >
-            End Day
+            End Turn
           </button>
         </div>
       )}

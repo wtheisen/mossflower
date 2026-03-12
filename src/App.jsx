@@ -43,17 +43,23 @@ const styles = {
 export default function App() {
   const {
     state, startRecruit, useLocationAction,
-    drawCube, confirmRecruit, cancelAction,
+    drawCube, confirmRecruit, resolveCombat, cancelAction,
     endDay, dropCube, returnCubeToBag, endNight,
-  } = useGameState();
+    calculatePower, getPlayerBustThreshold,
+  } = useGameState(2);
 
   const { phase, day, conquest, adventureRow, adventureDeck, discoveredLocations, horde,
-    champion, tableau, placements, bag, band, cardSlots,
-    action, busted, message, nightReturns } = state;
+    players, activePlayerIndex, playerCount, cardSlots, message } = state;
+  const activePlayer = players[activePlayerIndex];
+  const { champion, tableau, placements, abilityPlacements, bag, band, action, busted, bustCount, nightReturns, drawBonuses } = activePlayer;
 
   const canAct = !action && phase === 'day';
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
+
+  // Calculate power and bust threshold for display
+  const power = calculatePower(activePlayer);
+  const bustThreshold = getPlayerBustThreshold(activePlayer);
 
   // Find the target card for the action overlay
   const targetCard = action
@@ -65,7 +71,14 @@ export default function App() {
 
   return (
     <div style={styles.board}>
-      <StatusBar day={day} phase={phase} conquest={conquest} />
+      <StatusBar
+        day={day}
+        phase={phase}
+        conquest={conquest}
+        activePlayerIndex={activePlayerIndex}
+        playerCount={playerCount}
+        championName={activePlayer.champion.name}
+      />
 
       <div style={styles.middle}>
         <HordeArea
@@ -98,6 +111,7 @@ export default function App() {
             champion={champion}
             tableau={tableau}
             placements={placements}
+            abilityPlacements={abilityPlacements ?? {}}
             onCubeDrop={cubeDrop}
             onReturnCube={isNight && nightReturns < 2 ? returnCubeToBag : undefined}
           />
@@ -110,8 +124,13 @@ export default function App() {
             busted={busted}
             bagEmpty={bag.length === 0}
             message={message}
+            power={power}
+            bustThreshold={bustThreshold}
+            bustCount={bustCount ?? 0}
+            drawBonuses={drawBonuses}
             onDraw={drawCube}
             onRecruit={confirmRecruit}
+            onResolveCombat={resolveCombat}
             onCancel={cancelAction}
             canEndDay={phase === 'day' && !action}
             onEndDay={endDay}
@@ -132,8 +151,13 @@ export default function App() {
           busted={busted}
           bagEmpty={bag.length === 0}
           message={message}
+          power={power}
+          bustThreshold={bustThreshold}
+          bustCount={bustCount ?? 0}
+          drawBonuses={drawBonuses}
           onDraw={drawCube}
           onRecruit={confirmRecruit}
+          onResolveCombat={resolveCombat}
           onCancel={cancelAction}
         />
       )}

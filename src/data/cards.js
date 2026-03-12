@@ -43,6 +43,51 @@ export const CHAMPIONS = [
     tableauSlots: 5,
     startingBag: { squirrel: 2, mole: 1, food: 1, inexperience: 3 },
   },
+  {
+    id: 'ralph',
+    name: 'Ralph Woodfellow',
+    type: 'champion',
+    affinities: ['mouse', 'hare'],
+    startingBag: { mouse: 4, hare: 1, mole: 1, otter: 1, inexperience: 3 },
+    abilities: [
+      {
+        id: 'strength-in-numbers',
+        name: 'Strength in Numbers',
+        slots: 3,
+        slotFilter: 'mouse',
+        trigger: 'onDrawMouse',
+        effect: 'amplifyMice',
+        description: 'Each mouse placed here gives drawn mice +1 power.',
+      },
+      {
+        id: 'redwall-provisions',
+        name: 'Redwall Provisions',
+        slots: 2,
+        slotFilter: 'food',
+        trigger: 'onDrawMouse',
+        effect: 'addFoodPerMouse',
+        description: 'For each food placed here, each mouse drawn adds 1 food to your bag.',
+      },
+      {
+        id: 'rallying-cry',
+        name: 'Rallying Cry',
+        slots: 2,
+        slotFilter: 'non-mouse-critter',
+        trigger: 'onDrawMouse',
+        effect: 'allyPower',
+        description: 'For each critter placed here, drawing a mouse grants +1 power.',
+      },
+      {
+        id: 'courage-of-martin',
+        name: 'Courage of Martin',
+        slots: 2,
+        slotFilter: 'any',
+        trigger: 'passive',
+        effect: 'raiseBustThreshold',
+        description: 'Each cube placed here raises your bust threshold by 1.',
+      },
+    ],
+  },
 ];
 
 /**
@@ -230,16 +275,17 @@ export const DEMO_HORDE = {
 };
 
 export const DEMO_PLAYER = {
-  champion: CHAMPIONS[0], // Matthias
+  champion: CHAMPIONS[3], // Ralph Woodfellow
   tableau: [HEROES[0], HEROES[3]], // Redwall Sentry, Mossflower Forager
-  // Simulated cube placements on tableau cards (cubeType → count)
   placements: {
     'hero-redwall-sentry': [{ type: 'mouse' }, { type: 'mouse' }],
     'hero-squirrel-1': [{ type: 'squirrel' }],
   },
-  // All cubes in the bag at start (matches Matthias starting bag)
+  abilityPlacements: {},
+  // All cubes in the bag at start (matches Ralph starting bag)
   bag: [
-    'mouse', 'mouse', 'squirrel', 'food',
+    'mouse', 'mouse', 'mouse', 'mouse',
+    'hare', 'mole', 'otter',
     'inexperience', 'inexperience', 'inexperience',
   ],
 };
