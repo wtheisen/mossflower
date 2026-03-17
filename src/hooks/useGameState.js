@@ -1453,6 +1453,10 @@ export default function useGameState(config) {
     });
   }, []);
 
+  const startGame = useCallback((newConfig) => {
+    setState(buildInitialState(newConfig));
+  }, []);
+
   const restartGame = useCallback(() => {
     setState(buildInitialState(config));
   }, [config]);
@@ -1474,6 +1478,7 @@ export default function useGameState(config) {
     endNight,
     startFortressCombat,
     startVillainCombat,
+    startGame,
     restartGame,
     requestHelp,
     helperDrawCube,

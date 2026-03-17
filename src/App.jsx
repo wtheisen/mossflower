@@ -39,7 +39,7 @@ export default function App() {
     state, startRecruit, useLocationAction,
     drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
     endDay, dropCube, discardFood, returnCubeToBag, endNight,
-    startFortressCombat, startVillainCombat, restartGame,
+    startFortressCombat, startVillainCombat, startGame, restartGame,
     requestHelp, helperDrawCube, helperDone, skipHelp,
     calculatePower, getPlayerBustThreshold,
   } = useGameState(gameConfig);
@@ -159,7 +159,7 @@ export default function App() {
   ];
 
   if (showLanding) {
-    return <LandingPage onPlay={(config) => { setGameConfig(config); setShowLanding(false); }} />;
+    return <LandingPage onPlay={(config) => { setGameConfig(config); startGame(config); setShowLanding(false); }} />;
   }
 
   return (
