@@ -52,6 +52,27 @@ const styles = {
     letterSpacing: '4px',
     lineHeight: 1,
   },
+  spacer: {
+    flex: 1,
+  },
+  conquestArea: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexShrink: 0,
+  },
+  conquestTrack: {
+    display: 'flex',
+    gap: '3px',
+    alignItems: 'center',
+  },
+  conquestSquare: {
+    width: '14px',
+    height: '14px',
+    borderRadius: '2px',
+    border: '1.5px solid var(--border-card)',
+    transition: 'background 0.2s, border-color 0.2s',
+  },
 };
 
 export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, activePlayerIndex = 0, playerCount = 1, championName }) {
@@ -77,11 +98,31 @@ export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, active
         <span style={styles.label}>Phase</span>
         <span style={styles.value}>{phase}</span>
       </div>
-      <span style={styles.divider} />
-      <div style={styles.stat}>
+      <div style={styles.spacer} />
+      <div style={styles.conquestArea}>
         <span style={styles.label}>Conquest</span>
-        <span style={{ ...styles.value, color: conquest >= 7 ? 'var(--accent-red)' : undefined }}>
-          {conquest} / 10
+        <div style={styles.conquestTrack}>
+          {Array.from({ length: 10 }, (_, i) => {
+            const filled = i < conquest;
+            const danger = conquest >= 7;
+            return (
+              <div
+                key={i}
+                style={{
+                  ...styles.conquestSquare,
+                  background: filled
+                    ? (danger ? 'var(--accent-red)' : 'var(--type-fortress)')
+                    : 'transparent',
+                  borderColor: filled
+                    ? (danger ? 'var(--accent-red)' : 'var(--type-fortress)')
+                    : 'var(--border-card)',
+                }}
+              />
+            );
+          })}
+        </div>
+        <span style={{ ...styles.value, color: conquest >= 7 ? 'var(--accent-red)' : undefined, fontSize: '12px' }}>
+          {conquest}/10
         </span>
       </div>
       <span style={styles.ornament}>~ ~ ~</span>

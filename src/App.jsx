@@ -47,6 +47,11 @@ export default function App() {
   const isNight = phase === 'night';
 
   const [activeTab, setActiveTab] = useState('adventure');
+  const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
+
+  // Reset viewed player when active player changes
+  const viewedPlayer = players[viewedPlayerIndex] ?? activePlayer;
+  const isViewingOwn = viewedPlayerIndex === activePlayerIndex;
 
   // Calculate power and bust threshold for display
   const power = calculatePower(activePlayer);
@@ -81,28 +86,33 @@ export default function App() {
   // During dusk, cards accept cube drops
   const cubeDrop = isDusk ? dropCube : undefined;
 
-  // Count total vermin across locations for badge
-  const locationVermin = discoveredLocations.reduce((sum, loc) => {
-    const slots = cardSlots[loc.id] ?? [];
-    return sum + slots.filter((c) => c.type === 'vermin').length;
-  }, 0);
-
   const tabs = [
     {
       id: 'adventure',
       label: 'Adventure',
-      badge: adventureRow.length,
+      badge: adventureRow.length + (discoveredLocations.length > 0 ? ` / ${discoveredLocations.length}L` : ''),
       accentColor: 'var(--type-hero)',
       content: (
-        <AdventureRow
-          cards={adventureRow}
-          deckSize={adventureDeck.length}
-          onCardClick={startRecruit}
-          onLocationClick={useLocationAction}
-          selectedId={action?.targetId}
-          canAct={canAct}
-          cardSlots={cardSlots}
-        />
+        <>
+          <AdventureRow
+            cards={adventureRow}
+            deckSize={adventureDeck.length}
+            onCardClick={startRecruit}
+            onLocationClick={useLocationAction}
+            selectedId={action?.targetId}
+            canAct={canAct}
+            cardSlots={cardSlots}
+          />
+          {discoveredLocations.length > 0 && (
+            <DiscoveredLocations
+              locations={discoveredLocations}
+              onCardClick={useLocationAction}
+              canAct={canAct}
+              cardSlots={cardSlots}
+              onCubeDrop={cubeDrop}
+            />
+          )}
+        </>
       ),
     },
     {
@@ -122,22 +132,6 @@ export default function App() {
           cardSlots={cardSlots}
           onFortressClick={startFortressCombat}
           onVillainClick={startVillainCombat}
-        />
-      ),
-    },
-    {
-      id: 'locations',
-      label: 'Locations',
-      badge: locationVermin > 0 ? `${locationVermin}V` : discoveredLocations.length,
-      badgeColor: locationVermin > 0 ? 'var(--accent-red)' : 'var(--type-location)',
-      accentColor: 'var(--type-location)',
-      content: (
-        <DiscoveredLocations
-          locations={discoveredLocations}
-          onCardClick={useLocationAction}
-          canAct={canAct}
-          cardSlots={cardSlots}
-          onCubeDrop={cubeDrop}
         />
       ),
     },
@@ -162,13 +156,18 @@ export default function App() {
 
       <div style={styles.playerArea}>
         <PlayerTableau
-          champion={champion}
-          tableau={tableau}
-          placements={placements}
-          abilityPlacements={abilityPlacements ?? {}}
-          onCubeDrop={cubeDrop}
-          onReturnCube={isNight && nightReturns < 2 ? returnCubeToBag : undefined}
-          bandSlot={
+          champion={viewedPlayer.champion}
+          tableau={viewedPlayer.tableau}
+          placements={viewedPlayer.placements}
+          abilityPlacements={(viewedPlayer.abilityPlacements) ?? {}}
+          onCubeDrop={isViewingOwn ? cubeDrop : undefined}
+          onReturnCube={isViewingOwn && isNight && nightReturns < 2 ? returnCubeToBag : undefined}
+          viewedPlayerIndex={viewedPlayerIndex}
+          playerCount={playerCount}
+          activePlayerIndex={activePlayerIndex}
+          onPrevPlayer={() => setViewedPlayerIndex((viewedPlayerIndex - 1 + playerCount) % playerCount)}
+          onNextPlayer={() => setViewedPlayerIndex((viewedPlayerIndex + 1) % playerCount)}
+          bandSlot={isViewingOwn ?
             <Band
               cubes={band}
               action={action}
@@ -192,8 +191,9 @@ export default function App() {
               nightReturns={nightReturns}
               onEndNight={endNight}
             />
+            : null
           }
-          bagSlot={<Bag cubes={bag} />}
+          bagSlot={isViewingOwn ? <Bag cubes={bag} /> : null}
         />
       </div>
 

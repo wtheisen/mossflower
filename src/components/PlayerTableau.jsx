@@ -16,6 +16,30 @@ const styles = {
     fontFamily: 'var(--font-display)',
     fontStyle: 'italic',
     textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+  },
+  navArrow: {
+    cursor: 'pointer',
+    fontSize: '16px',
+    color: 'var(--text-secondary)',
+    background: 'none',
+    border: '1px solid var(--border-card)',
+    borderRadius: '4px',
+    padding: '2px 8px',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 700,
+    lineHeight: 1,
+    transition: 'color 0.2s, border-color 0.2s',
+  },
+  viewingOther: {
+    fontSize: '10px',
+    color: 'var(--text-muted)',
+    textTransform: 'none',
+    fontStyle: 'normal',
+    letterSpacing: 'normal',
   },
   row: {
     display: 'flex',
@@ -190,7 +214,7 @@ function filterLabel(slotFilter) {
  * Renders the current player's champion + recruited hero cards.
  * Champions with abilities show ability zones as drop targets.
  */
-export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot }) {
+export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer }) {
   const hasAbilities = champion.abilities && champion.abilities.length > 0;
 
   const handleAbilityDragOver = (e) => {
@@ -211,7 +235,22 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
   return (
     <div style={styles.section}>
       <div style={styles.label}>
-        {champion.name} — Tableau
+        {playerCount > 1 && (
+          <button style={styles.navArrow} onClick={onPrevPlayer} title="Previous player">
+            ‹
+          </button>
+        )}
+        <span>
+          {champion.name} — Tableau
+          {playerCount > 1 && viewedPlayerIndex !== activePlayerIndex && (
+            <span style={styles.viewingOther}> (viewing)</span>
+          )}
+        </span>
+        {playerCount > 1 && (
+          <button style={styles.navArrow} onClick={onNextPlayer} title="Next player">
+            ›
+          </button>
+        )}
       </div>
       <div style={styles.row}>
         {/* Champion card area */}
