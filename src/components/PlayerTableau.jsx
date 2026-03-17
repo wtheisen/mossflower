@@ -324,7 +324,6 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                       >
                         <div style={styles.abilityName}>{ability.name}</div>
                         <div style={styles.abilityDesc}>{ability.description}</div>
-                        <div style={styles.abilityFilter}>{filterLabel(ability.slotFilter)}</div>
                         <CubeSlots
                           total={ability.slots}
                           filled={placed}

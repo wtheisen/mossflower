@@ -1248,10 +1248,6 @@ export default function useGameState(config) {
         if (cubeType === 'wound' || cubeType === 'vermin') {
           return { ...s, message: `${cubeType} must go on a tableau card, not an ability slot.` };
         }
-        if (!passesSlotFilter(ability.slotFilter, cubeType)) {
-          const filterLabel = ability.slotFilter === 'non-mouse-critter' ? 'non-mouse critter' : ability.slotFilter;
-          return { ...s, message: `${ability.name} only accepts ${filterLabel} cubes.` };
-        }
         const currentPlacements = (p.abilityPlacements ?? {})[ability.id] ?? [];
         if (currentPlacements.length >= ability.slots) {
           return { ...s, message: `${ability.name} is full!` };
