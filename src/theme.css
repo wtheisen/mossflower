@@ -34,12 +34,12 @@
   --cube-wound: #1a1a1a;
 
   /* Card type borders — botanical/earthy */
-  --type-champion: #b8860b;
-  --type-hero: #5b82a6;
-  --type-location: #6a9a5a;
-  --type-quest: #8a6aaa;
-  --type-fortress: #8b6842;
-  --type-villain: #a05040;
+  --type-champion: #8a6508;
+  --type-hero: #3d5f80;
+  --type-location: #467338;
+  --type-quest: #644a82;
+  --type-fortress: #6b4e30;
+  --type-villain: #7a3528;
 
   /* Sizing */
   --card-width: 170px;

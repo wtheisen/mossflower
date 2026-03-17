@@ -242,8 +242,9 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
       <div
         style={{
           ...styles.titleBar,
-          background: `linear-gradient(135deg, ${borderColor} 0%, ${borderColor}cc 100%)`,
+          background: borderColor,
           borderBottom: '1px solid rgba(0,0,0,0.2)',
+          boxShadow: 'inset 0 -20px 30px rgba(0,0,0,0.15)',
         }}
       >
         <span style={styles.name}>{card.name}</span>
