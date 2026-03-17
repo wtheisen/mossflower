@@ -195,16 +195,10 @@ export default function HordeArea({
               style={canAct ? styles.clickable : undefined}
               onClick={canAct && onFortressClick ? () => onFortressClick(fortress.id) : undefined}
             >
-              <Card card={fortress} />
+              <Card card={fortress} filledSlots={fortressVermin} />
             </div>
           ) : (
             <div style={styles.clearedPlaceholder}>Cleared</div>
-          )}
-          {fortress && fortressVermin.length > 0 && (
-            <div style={styles.verminSlots}>
-              <div style={styles.verminLabel}>Vermin ({fortressVermin.length}/{fortress.slots})</div>
-              <CubeSlots total={fortress.slots} filled={fortressVermin} />
-            </div>
           )}
         </div>
 
@@ -227,17 +221,11 @@ export default function HordeArea({
             }}
             onClick={canAct && !villainLocked && onVillainClick ? () => onVillainClick(villain.id) : undefined}
           >
-            <Card card={villain} />
+            <Card card={villain} filledSlots={villainVermin} />
             {villainLocked && (
               <div style={styles.lockedBadge}>Locked</div>
             )}
           </div>
-          {villain && villainVermin.length > 0 && (
-            <div style={styles.verminSlots}>
-              <div style={styles.verminLabel}>Vermin ({villainVermin.length}/{villain.slots})</div>
-              <CubeSlots total={villain.slots} filled={villainVermin} />
-            </div>
-          )}
         </div>
 
         {/* Conquest track */}
