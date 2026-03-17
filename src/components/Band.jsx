@@ -133,6 +133,7 @@ export default function Band({
   drawBonuses, nextDrawTeaser,
   onDraw, onRecruit, onResolveCombat, onForfeit, onCancel,
   canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight,
+  onDiscardFood, helpPhase, onDragCubeType,
 }) {
   const inAction = !!action;
   const isCombat = action?.type === 'combat';
@@ -140,6 +141,11 @@ export default function Band({
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData('cube-index', String(index));
     e.dataTransfer.effectAllowed = 'move';
+    if (onDragCubeType) onDragCubeType(cubes[index]);
+  };
+
+  const handleDragEnd = () => {
+    if (onDragCubeType) onDragCubeType(null);
   };
 
   // Recent trigger messages (last 3)
@@ -179,6 +185,13 @@ export default function Band({
         </div>
       )}
 
+      {/* Help phase indicator */}
+      {helpPhase && inAction && (
+        <div style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 600, marginBottom: '6px', fontFamily: 'var(--font-display)' }}>
+          Helpers may draw cubes for you
+        </div>
+      )}
+
       <div style={styles.cubes}>
         {cubes.length === 0 ? (
           <span style={styles.empty}>
@@ -190,9 +203,29 @@ export default function Band({
               key={i}
               draggable={isDusk}
               onDragStart={isDusk ? (e) => handleDragStart(e, i) : undefined}
-              style={{ cursor: isDusk ? 'grab' : 'default' }}
+              onDragEnd={isDusk ? handleDragEnd : undefined}
+              style={{ cursor: isDusk ? 'grab' : 'default', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
             >
               <CubeChip cubeType={type} />
+              {isDusk && type === 'food' && onDiscardFood && (
+                <button
+                  onClick={() => onDiscardFood(i)}
+                  title="Return food to supply"
+                  style={{
+                    fontSize: '9px',
+                    padding: '1px 4px',
+                    border: '1px solid var(--border-card)',
+                    borderRadius: '4px',
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    lineHeight: 1,
+                    fontFamily: 'var(--font-display)',
+                  }}
+                >
+                  ×
+                </button>
+              )}
             </span>
           ))
         )}

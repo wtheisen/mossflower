@@ -1,5 +1,7 @@
 import Card from './Card';
 
+const BUST_TYPES_SET = new Set(['inexperience', 'vermin', 'wound']);
+
 const styles = {
   section: {
     padding: '8px 24px 16px',
@@ -25,20 +27,28 @@ const styles = {
   },
 };
 
-export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop }) {
+export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop, isDusk, draggedCubeType }) {
+  const dragging = isDusk && draggedCubeType;
+  const locationValid = !dragging || !BUST_TYPES_SET.has(draggedCubeType);
+
   return (
     <div style={styles.section}>
       <div style={styles.label}>Discovered Locations</div>
       <div style={styles.row}>
         {locations.map((loc) => (
-          <Card
-            key={loc.id}
-            card={loc}
-            filledSlots={cardSlots[loc.id] ?? []}
-            onClick={canAct ? () => onCardClick?.(loc.id) : undefined}
-            highlighted={canAct}
-            onCubeDrop={onCubeDrop}
-          />
+          <div key={loc.id} style={{
+            ...(dragging && locationValid ? { boxShadow: '0 0 10px 2px rgba(184, 134, 11, 0.5)' } : {}),
+            ...(dragging && !locationValid ? { opacity: 0.4, transition: 'opacity 0.2s' } : {}),
+            borderRadius: 'var(--radius)',
+          }}>
+            <Card
+              card={loc}
+              filledSlots={cardSlots[loc.id] ?? []}
+              onClick={canAct ? () => onCardClick?.(loc.id) : undefined}
+              highlighted={canAct}
+              onCubeDrop={onCubeDrop}
+            />
+          </div>
         ))}
       </div>
     </div>

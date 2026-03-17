@@ -214,8 +214,29 @@ function filterLabel(slotFilter) {
  * Renders the current player's champion + recruited hero cards.
  * Champions with abilities show ability zones as drop targets.
  */
-export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer }) {
+const BUST_TYPES_SET = new Set(['inexperience', 'vermin', 'wound']);
+const CRITTER_TYPES_SET = new Set(['mouse', 'squirrel', 'hare', 'otter', 'mole', 'badger']);
+
+function isValidDuskTarget(cubeType, targetType) {
+  // targetType: 'champion', 'hero', 'ability', 'location'
+  if (!cubeType) return true; // no cube dragged, show all
+  if (cubeType === 'inexperience') return targetType === 'champion' || targetType === 'ability';
+  if (cubeType === 'wound' || cubeType === 'vermin') return targetType === 'champion' || targetType === 'hero';
+  // critters: tableau or locations
+  if (CRITTER_TYPES_SET.has(cubeType)) return true;
+  // food: tableau, locations, or discard
+  if (cubeType === 'food') return true;
+  return true;
+}
+
+export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType }) {
   const hasAbilities = champion.abilities && champion.abilities.length > 0;
+  const dragging = isDusk && draggedCubeType;
+
+  // Determine glow for champion card area
+  const championValid = !dragging || isValidDuskTarget(draggedCubeType, 'champion');
+  const glowStyle = { boxShadow: '0 0 10px 2px rgba(184, 134, 11, 0.5)', borderColor: 'var(--accent-gold)' };
+  const dimStyle = { opacity: 0.4, transition: 'opacity 0.2s' };
 
   const handleAbilityDragOver = (e) => {
     if (!onCubeDrop) return;
@@ -257,7 +278,11 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
         <div style={styles.championArea}>
           {hasAbilities ? (
             /* Champion with abilities: render as a large card with embedded ability zones */
-            <div style={styles.championCard}>
+            <div style={{
+              ...styles.championCard,
+              ...(dragging && championValid ? glowStyle : {}),
+              ...(dragging && !championValid ? dimStyle : {}),
+            }}>
               {/* Title Bar — spans full width */}
               <div style={styles.championTitleBar}>
                 <span style={styles.championName}>{champion.name}</span>
@@ -284,12 +309,15 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                   {champion.abilities.map((ability) => {
                     const placed = abilityPlacements[ability.id] ?? [];
                     const hasPlaced = placed.length > 0;
+                    const abilityValid = !dragging || isValidDuskTarget(draggedCubeType, 'ability');
                     return (
                       <div
                         key={ability.id}
                         style={{
                           ...styles.abilityZone,
                           ...(hasPlaced ? styles.abilityZoneActive : {}),
+                          ...(dragging && abilityValid ? glowStyle : {}),
+                          ...(dragging && !abilityValid ? dimStyle : {}),
                         }}
                         onDragOver={handleAbilityDragOver}
                         onDrop={(e) => handleAbilityDrop(ability.id, e)}
@@ -310,27 +338,41 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
             </div>
           ) : (
             /* Champion without abilities: render as a normal card */
-            <Card
-              card={champion}
-              filledSlots={placements[champion.id] ?? []}
-              wide
-              onCubeDrop={onCubeDrop}
-              onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(champion.id, slotIdx) : undefined}
-            />
+            <div style={{
+              ...(dragging && championValid ? glowStyle : {}),
+              ...(dragging && !championValid ? dimStyle : {}),
+              borderRadius: 'var(--radius)',
+            }}>
+              <Card
+                card={champion}
+                filledSlots={placements[champion.id] ?? []}
+                wide
+                onCubeDrop={onCubeDrop}
+                onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(champion.id, slotIdx) : undefined}
+              />
+            </div>
           )}
         </div>
 
         {/* Hero cards — centered */}
         <div style={styles.heroGroup}>
-          {tableau.map((hero) => (
-            <Card
-              key={hero.id}
-              card={hero}
-              filledSlots={placements[hero.id] ?? []}
-              onCubeDrop={onCubeDrop}
-              onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
-            />
-          ))}
+          {tableau.map((hero) => {
+            const heroValid = !dragging || isValidDuskTarget(draggedCubeType, 'hero');
+            return (
+              <div key={hero.id} style={{
+                ...(dragging && heroValid ? glowStyle : {}),
+                ...(dragging && !heroValid ? dimStyle : {}),
+                borderRadius: 'var(--radius)',
+              }}>
+                <Card
+                  card={hero}
+                  filledSlots={placements[hero.id] ?? []}
+                  onCubeDrop={onCubeDrop}
+                  onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Band + Bag — right-aligned */}

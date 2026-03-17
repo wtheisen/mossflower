@@ -210,7 +210,17 @@ function createPlayer(index) {
     actionsUsed: 0,
     passed: false,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
+    // Helping Hands state
+    helpBand: [],
+    helpBustCount: 0,
+    helpBusted: false,
   };
+}
+
+function patchPlayer(s, playerIndex, patch) {
+  const players = [...s.players];
+  players[playerIndex] = { ...players[playerIndex], ...patch };
+  return { ...s, players };
 }
 
 function buildInitialState(playerCount) {
@@ -247,6 +257,7 @@ function buildInitialState(playerCount) {
     conquest: 2,
     playerCount,
     activePlayerIndex: 0,
+    helpPhase: false,
     players,
     gameResult: null,
 
@@ -709,7 +720,7 @@ export default function useGameState(playerCount = 2) {
           || (s.horde.villain?.id === targetId ? s.horde.villain : null);
         const locName = loc?.name ?? targetId;
 
-        let result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
+        let result = { ...s, helpPhase: false, cardSlots: newCardSlots, conquest: s.conquest + 1 };
         result = patchActivePlayer(result, {
           bag: newBag,
           band: bandAfter,
@@ -743,6 +754,121 @@ export default function useGameState(playerCount = 2) {
       });
       result.message = message;
       return result;
+    });
+  }, []);
+
+  // ── Helping Hands ──────────────────────────────────
+
+  const requestHelp = useCallback(() => {
+    setState((s) => {
+      if (s.gameResult) return s;
+      const p = getActivePlayer(s);
+      if (!p.action) return s;
+      if (s.playerCount < 2) return { ...s, message: 'No other players to help.' };
+      if (s.helpPhase) return s;
+      // Reset all helpers' helpBand state
+      const players = s.players.map((pl, i) =>
+        i === s.activePlayerIndex ? pl : { ...pl, helpBand: [], helpBustCount: 0, helpBusted: false },
+      );
+      return { ...s, players, helpPhase: true, message: 'Help phase — other players may draw from their bags to assist.' };
+    });
+  }, []);
+
+  const helperDrawCube = useCallback((helperIndex) => {
+    setState((s) => {
+      if (!s.helpPhase) return s;
+      if (helperIndex === s.activePlayerIndex) return s;
+      const helper = s.players[helperIndex];
+      if (!helper || helper.helpBusted) return { ...s, message: `Player ${helperIndex + 1} already busted.` };
+      if (helper.bag.length === 0) return { ...s, message: `Player ${helperIndex + 1}'s bag is empty.` };
+
+      const newBag = [...helper.bag];
+      const idx = Math.floor(Math.random() * newBag.length);
+      const [drawn] = newBag.splice(idx, 1);
+      const newHelpBand = [...helper.helpBand, drawn];
+
+      const isBustType = BUST_TYPES.has(drawn);
+      const newBustCount = isBustType ? helper.helpBustCount + 1 : helper.helpBustCount;
+      const bustThreshold = getPlayerBustThreshold(helper);
+      const busted = newBustCount >= bustThreshold;
+
+      const badWarning = newBustCount > 0 ? ` (${newBustCount}/${bustThreshold} bad)` : '';
+      const bustMsg = busted ? ` BUST! Helper's cubes still count.` : '';
+      const message = `Player ${helperIndex + 1} drew "${drawn}".${badWarning}${bustMsg}`;
+
+      let result = patchPlayer(s, helperIndex, {
+        bag: newBag,
+        helpBand: newHelpBand,
+        helpBustCount: newBustCount,
+        helpBusted: busted,
+      });
+      result.message = message;
+      return result;
+    });
+  }, []);
+
+  const helperDone = useCallback((helperIndex) => {
+    setState((s) => {
+      if (!s.helpPhase) return s;
+      if (helperIndex === s.activePlayerIndex) return s;
+      const helper = s.players[helperIndex];
+      if (!helper || helper.helpBand.length === 0) return s;
+
+      // Transfer critter/food cubes to active player's band. Inexperience stays with helper (goes to their bag).
+      const toTransfer = [];
+      const toReturn = [];
+      for (const cube of helper.helpBand) {
+        if (cube === 'inexperience') {
+          toReturn.push(cube);
+        } else {
+          toTransfer.push(cube);
+        }
+      }
+
+      const activePlayer = getActivePlayer(s);
+      const newActiveBand = [...activePlayer.band, ...toTransfer];
+      const helperBag = [...helper.bag, ...toReturn];
+
+      let result = patchPlayer(s, helperIndex, {
+        bag: shuffleArray(helperBag),
+        helpBand: [],
+        helpBustCount: 0,
+        helpBusted: false,
+      });
+      result = patchActivePlayer(result, { band: newActiveBand });
+
+      const transferMsg = toTransfer.length > 0 ? `${toTransfer.join(', ')} added to active player's band.` : 'No cubes to transfer.';
+      const returnMsg = toReturn.length > 0 ? ` ${toReturn.length} inexperience returned to helper's bag.` : '';
+      result.message = `Player ${helperIndex + 1} done helping. ${transferMsg}${returnMsg}`;
+      return result;
+    });
+  }, []);
+
+  const skipHelp = useCallback(() => {
+    setState((s) => {
+      if (!s.helpPhase) return s;
+      // Auto-transfer any pending helper cubes
+      let result = { ...s };
+      for (let i = 0; i < s.playerCount; i++) {
+        if (i === s.activePlayerIndex) continue;
+        const helper = result.players[i];
+        if (helper.helpBand.length > 0) {
+          const toTransfer = [];
+          const toReturn = [];
+          for (const cube of helper.helpBand) {
+            if (cube === 'inexperience') toReturn.push(cube);
+            else toTransfer.push(cube);
+          }
+          const activePlayer = getActivePlayer(result);
+          const newActiveBand = [...activePlayer.band, ...toTransfer];
+          const helperBag = [...helper.bag, ...toReturn];
+          result = patchPlayer(result, i, {
+            bag: shuffleArray(helperBag), helpBand: [], helpBustCount: 0, helpBusted: false,
+          });
+          result = patchActivePlayer(result, { band: newActiveBand });
+        }
+      }
+      return { ...result, helpPhase: false, message: 'Help phase ended. Resolve your action.' };
     });
   }, []);
 
@@ -782,6 +908,7 @@ export default function useGameState(playerCount = 2) {
 
       let result = {
         ...s,
+        helpPhase: false,
         adventureRow: s.adventureRow.filter((c) => c.id !== target.id),
       };
       result = patchActivePlayer(result, {
@@ -828,6 +955,9 @@ export default function useGameState(playerCount = 2) {
         action: null, bustCount: 0, busted: false,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       };
+
+      // Always clear helpPhase when resolving combat
+      s = { ...s, helpPhase: false };
 
       let result;
       if (power >= verm) {
@@ -941,7 +1071,7 @@ export default function useGameState(playerCount = 2) {
         || (s.horde.villain?.id === targetId ? s.horde.villain : null);
       const locName = loc?.name ?? targetId;
 
-      let result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
+      let result = { ...s, helpPhase: false, cardSlots: newCardSlots, conquest: s.conquest + 1 };
       result = patchActivePlayer(result, {
         band: newBand,
         action: null,
@@ -1024,7 +1154,7 @@ export default function useGameState(playerCount = 2) {
       if (!p.action) return s;
 
       const wasBusted = p.busted;
-      let result = patchActivePlayer(s, {
+      let result = patchActivePlayer({ ...s, helpPhase: false }, {
         action: null, bustCount: 0, busted: false,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
@@ -1062,11 +1192,20 @@ export default function useGameState(playerCount = 2) {
 
       const cubeType = p.band[cubeIndex];
 
+      // ── Dusk placement rules ──
+      // Inexperience MUST go on champion (card or ability slots only)
+      // Wound/vermin MUST go on tableau cards (champion or heroes), NOT ability slots or locations
+      // Critters can go on tableau or locations
+      // Food can go on tableau, locations, or be discarded (via discardFood)
+
       // Check if it's a location (worker placement)
       const loc = s.discoveredLocations.find((c) => c.id === cardId);
       if (loc) {
         if (BUST_TYPES.has(cubeType)) {
-          return { ...s, message: `Can't place ${cubeType} as a worker — must go on your tableau.` };
+          const hint = cubeType === 'inexperience'
+            ? 'Inexperience must be placed on your Champion.'
+            : `${cubeType} must go on your tableau (champion or heroes).`;
+          return { ...s, message: hint };
         }
         const currentSlots = s.cardSlots[cardId] ?? [];
         if (currentSlots.length >= (loc.slots ?? 0)) {
@@ -1090,6 +1229,10 @@ export default function useGameState(playerCount = 2) {
       // Check if it's a champion ability slot
       const ability = p.champion.abilities?.find((a) => a.id === cardId);
       if (ability) {
+        // Wounds/vermin cannot go in ability slots
+        if (cubeType === 'wound' || cubeType === 'vermin') {
+          return { ...s, message: `${cubeType} must go on a tableau card, not an ability slot.` };
+        }
         if (!passesSlotFilter(ability.slotFilter, cubeType)) {
           const filterLabel = ability.slotFilter === 'non-mouse-critter' ? 'non-mouse critter' : ability.slotFilter;
           return { ...s, message: `${ability.name} only accepts ${filterLabel} cubes.` };
@@ -1120,6 +1263,11 @@ export default function useGameState(playerCount = 2) {
       const tableauCard = isChampion ? p.champion : p.tableau.find((c) => c.id === cardId);
       if (!tableauCard) return { ...s, message: 'Invalid target.' };
 
+      // Inexperience MUST go on the champion card
+      if (cubeType === 'inexperience' && !isChampion) {
+        return { ...s, message: 'Inexperience must be placed on your Champion.' };
+      }
+
       const totalSlots = tableauCard.tableauSlots ?? tableauCard.slots ?? 0;
       const currentPlacements = p.placements[cardId] ?? [];
       if (currentPlacements.length >= totalSlots) {
@@ -1133,6 +1281,28 @@ export default function useGameState(playerCount = 2) {
         ? 'All cubes placed!'
         : `Placed ${cubeType} on ${tableauCard.name}. ${newBand.length} cube(s) remaining.`;
       let result = patchActivePlayer(s, { band: newBand, placements: newPlacements });
+      result.message = doneMsg;
+      if (newBand.length === 0) {
+        result = advanceDusk(result);
+      }
+      return result;
+    });
+  }, []);
+
+  const discardFood = useCallback((cubeIndex) => {
+    setState((s) => {
+      if (s.phase !== 'dusk') return s;
+      const p = getActivePlayer(s);
+      if (cubeIndex < 0 || cubeIndex >= p.band.length) return s;
+      if (p.band[cubeIndex] !== 'food') {
+        return { ...s, message: 'Only food cubes can be returned to supply.' };
+      }
+      const newBand = [...p.band];
+      newBand.splice(cubeIndex, 1);
+      const doneMsg = newBand.length === 0
+        ? 'All cubes placed!'
+        : `Returned food to supply. ${newBand.length} cube(s) remaining.`;
+      let result = patchActivePlayer(s, { band: newBand });
       result.message = doneMsg;
       if (newBand.length === 0) {
         result = advanceDusk(result);
@@ -1282,11 +1452,16 @@ export default function useGameState(playerCount = 2) {
     cancelAction,
     endDay,
     dropCube,
+    discardFood,
     returnCubeToBag,
     endNight,
     startFortressCombat,
     startVillainCombat,
     restartGame,
+    requestHelp,
+    helperDrawCube,
+    helperDone,
+    skipHelp,
     calculatePower: (player) => calculatePower(player),
     getPlayerBustThreshold: (player) => getPlayerBustThreshold(player),
   };

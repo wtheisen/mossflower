@@ -33,13 +33,14 @@ export default function App() {
   const {
     state, startRecruit, useLocationAction,
     drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
-    endDay, dropCube, returnCubeToBag, endNight,
+    endDay, dropCube, discardFood, returnCubeToBag, endNight,
     startFortressCombat, startVillainCombat, restartGame,
+    requestHelp, helperDrawCube, helperDone, skipHelp,
     calculatePower, getPlayerBustThreshold,
   } = useGameState(2);
 
   const { phase, day, conquest, adventureRow, adventureDeck, discoveredLocations, horde,
-    players, activePlayerIndex, playerCount, cardSlots, message, gameResult } = state;
+    players, activePlayerIndex, playerCount, cardSlots, message, gameResult, helpPhase } = state;
   const activePlayer = players[activePlayerIndex];
   const { champion, tableau, placements, abilityPlacements, bag, band, action, busted, bustCount, nightReturns, drawBonuses } = activePlayer;
 
@@ -50,6 +51,7 @@ export default function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('adventure');
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
+  const [draggedCubeType, setDraggedCubeType] = useState(null);
 
   // Reset viewed player when active player changes
   const viewedPlayer = players[viewedPlayerIndex] ?? activePlayer;
@@ -112,6 +114,8 @@ export default function App() {
               canAct={canAct}
               cardSlots={cardSlots}
               onCubeDrop={cubeDrop}
+              isDusk={isDusk}
+              draggedCubeType={draggedCubeType}
             />
           )}
         </>
@@ -173,6 +177,8 @@ export default function App() {
           activePlayerIndex={activePlayerIndex}
           onPrevPlayer={() => setViewedPlayerIndex((viewedPlayerIndex - 1 + playerCount) % playerCount)}
           onNextPlayer={() => setViewedPlayerIndex((viewedPlayerIndex + 1) % playerCount)}
+          isDusk={isDusk}
+          draggedCubeType={draggedCubeType}
           bandSlot={isViewingOwn ?
             <Band
               cubes={band}
@@ -196,6 +202,9 @@ export default function App() {
               isNight={isNight}
               nightReturns={nightReturns}
               onEndNight={endNight}
+              onDiscardFood={discardFood}
+              helpPhase={helpPhase}
+              onDragCubeType={setDraggedCubeType}
             />
             : null
           }
@@ -219,7 +228,16 @@ export default function App() {
           onDraw={drawCube}
           onRecruit={confirmRecruit}
           onResolveCombat={resolveCombat}
+          onForfeit={forfeitCombat}
           onCancel={cancelAction}
+          helpPhase={helpPhase}
+          players={players}
+          activePlayerIndex={activePlayerIndex}
+          onRequestHelp={requestHelp}
+          onHelperDraw={helperDrawCube}
+          onHelperDone={helperDone}
+          onSkipHelp={skipHelp}
+          getPlayerBustThreshold={getPlayerBustThreshold}
         />
       )}
 
