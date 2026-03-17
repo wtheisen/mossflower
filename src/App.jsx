@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import LandingPage from './components/LandingPage';
 import StatusBar from './components/StatusBar';
 import AdventureRow from './components/AdventureRow';
 import PlayerTableau from './components/PlayerTableau';
@@ -46,6 +47,7 @@ export default function App() {
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
 
+  const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('adventure');
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
 
@@ -136,6 +138,10 @@ export default function App() {
       ),
     },
   ];
+
+  if (showLanding) {
+    return <LandingPage onPlay={() => setShowLanding(false)} />;
+  }
 
   return (
     <div style={styles.board}>
