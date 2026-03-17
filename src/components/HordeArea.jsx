@@ -14,11 +14,13 @@ const styles = {
     fontWeight: 700,
     fontFamily: 'var(--font-display)',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   row: {
     display: 'flex',
     gap: '12px',
     alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   cardWrapper: {
     display: 'flex',

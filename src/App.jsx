@@ -26,6 +26,7 @@ const styles = {
     display: 'flex',
     gap: '16px',
     alignItems: 'flex-start',
+    justifyContent: 'center',
     flexShrink: 0,
     overflowX: 'auto',
   },

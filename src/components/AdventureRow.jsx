@@ -13,6 +13,7 @@ const styles = {
     fontWeight: 700,
     fontFamily: 'var(--font-display)',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   row: {
     display: 'flex',
@@ -20,6 +21,7 @@ const styles = {
     overflowX: 'auto',
     paddingBottom: '4px',
     alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   deck: {
     width: 'var(--card-width)',
