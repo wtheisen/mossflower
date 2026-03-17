@@ -27,7 +27,7 @@ const styles = {
   },
 };
 
-export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop, isDusk, draggedCubeType }) {
+export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop, isDusk, draggedCubeType, playerTokensMap = {} }) {
   const dragging = isDusk && draggedCubeType;
   const locationValid = !dragging || !BUST_TYPES_SET.has(draggedCubeType);
 
@@ -47,6 +47,7 @@ export default function DiscoveredLocations({ locations, onCardClick, canAct, ca
               onClick={canAct ? () => onCardClick?.(loc.id) : undefined}
               highlighted={canAct}
               onCubeDrop={onCubeDrop}
+              playerTokens={playerTokensMap[loc.id]}
             />
           </div>
         ))}

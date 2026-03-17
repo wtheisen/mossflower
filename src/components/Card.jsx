@@ -190,7 +190,7 @@ const styles = {
   },
 };
 
-export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick }) {
+export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, playerTokens }) {
   const borderColor = TYPE_COLORS[card.type] ?? 'var(--border-card)';
   const bgTint = TYPE_BG[card.type] ?? 'transparent';
   const scene = ART_SCENES[card.type] ?? ART_SCENES.hero;
@@ -258,6 +258,27 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
           </div>
         )}
       </div>
+
+      {/* ── Player Tokens ── */}
+      {playerTokens && playerTokens.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '4px', right: '4px', zIndex: 3,
+          display: 'flex', gap: '3px',
+        }}>
+          {playerTokens.map((t) => (
+            <div key={t.index} style={{
+              width: '16px', height: '16px', borderRadius: '50%',
+              background: t.color, border: '2px solid rgba(255,255,255,0.8)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              fontSize: '9px', fontWeight: 700, color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+            }}>
+              {t.index + 1}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Art Box ── */}
       <div

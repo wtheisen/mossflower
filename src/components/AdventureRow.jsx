@@ -59,7 +59,7 @@ const styles = {
   },
 };
 
-export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocationClick, selectedId, canAct, cardSlots = {} }) {
+export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocationClick, selectedId, canAct, cardSlots = {}, playerTokensMap = {} }) {
   return (
     <div style={styles.section}>
       <div style={styles.label}>Adventure Row</div>
@@ -78,6 +78,7 @@ export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocat
                 : undefined}
               selected={card.id === selectedId}
               highlighted={clickable}
+              playerTokens={playerTokensMap[card.id]}
             />
           );
         })}

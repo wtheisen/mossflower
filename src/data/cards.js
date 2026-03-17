@@ -249,44 +249,38 @@ export const BASE_LOCATIONS = [
 ];
 
 /**
- * Static demo data — a sample adventure row and player tableau.
+ * Expand a startingBag map like { mouse: 2, food: 1 } into ['mouse','mouse','food'].
  */
-export const DEMO_ADVENTURE_ROW = [
-  HEROES[0],   // Redwall Sentry
-  LOCATIONS[0], // The Great Hall
-  HEROES[1],   // Guerrilla Scout
-  LOCATIONS[2], // Mossflower Border
-  HEROES[2],   // Salamandastron Veteran
-];
+export function expandStartingBag(bagMap) {
+  const result = [];
+  for (const [type, count] of Object.entries(bagMap)) {
+    for (let i = 0; i < count; i++) result.push(type);
+  }
+  return result;
+}
 
-// Cards remaining in the adventure deck (not in the starting row)
-export const DEMO_ADVENTURE_DECK = [
-  HEROES[3],    // Mossflower Forager
-  LOCATIONS[1], // The Cellar
-  LOCATIONS[3], // Salamandastron
-];
+/**
+ * Build a shuffled adventure row + deck from all heroes and locations.
+ */
+export function buildAdventure(shuffleFn) {
+  const pool = shuffleFn([...HEROES, ...LOCATIONS]);
+  return {
+    adventureRow: pool.slice(0, 5),
+    adventureDeck: pool.slice(5),
+  };
+}
 
-export const DEMO_DISCOVERED = [...BASE_LOCATIONS];
-
-export const DEMO_HORDE = {
-  fortress: FORTRESS[0],  // Cluny Siege Engine (revealed)
-  fortressDeck: [FORTRESS[1]],  // remaining fortress cards
-  fortressCleared: false,
-  villain: VILLAINS[1],    // Cluny the Scourge
-};
-
-export const DEMO_PLAYER = {
-  champion: CHAMPIONS[3], // Ralph Woodfellow
-  tableau: [HEROES[0], HEROES[3]], // Redwall Sentry, Mossflower Forager
-  placements: {
-    'hero-redwall-sentry': [{ type: 'mouse' }, { type: 'mouse' }],
-    'hero-squirrel-1': [{ type: 'squirrel' }],
-  },
-  abilityPlacements: {},
-  // All cubes in the bag at start (matches Ralph starting bag)
-  bag: [
-    'mouse', 'mouse', 'mouse', 'mouse',
-    'hare', 'mole', 'otter',
-    'inexperience', 'inexperience', 'inexperience',
-  ],
-};
+/**
+ * Build the horde area for a given villain ID.
+ */
+export function buildHorde(villainId) {
+  const villain = VILLAINS.find(v => v.id === villainId) ?? VILLAINS[1];
+  const fortressDeck = [...FORTRESS];
+  const fortress = fortressDeck.shift();
+  return {
+    fortress,
+    fortressDeck,
+    fortressCleared: false,
+    villain,
+  };
+}

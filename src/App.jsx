@@ -10,7 +10,7 @@ import DiscoveredLocations from './components/DiscoveredLocations';
 import BoardTabs from './components/BoardTabs';
 import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
-import useGameState from './hooks/useGameState';
+import useGameState, { PLAYER_COLORS } from './hooks/useGameState';
 
 const styles = {
   board: {
@@ -29,7 +29,12 @@ const styles = {
   },
 };
 
+const DEFAULT_CONFIG = { playerCount: 2, championIds: ['matthias', 'ralph'], villainId: 'vil-cluny' };
+
 export default function App() {
+  const [gameConfig, setGameConfig] = useState(DEFAULT_CONFIG);
+  const [showLanding, setShowLanding] = useState(true);
+
   const {
     state, startRecruit, useLocationAction,
     drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
@@ -37,7 +42,7 @@ export default function App() {
     startFortressCombat, startVillainCombat, restartGame,
     requestHelp, helperDrawCube, helperDone, skipHelp,
     calculatePower, getPlayerBustThreshold,
-  } = useGameState(2);
+  } = useGameState(gameConfig);
 
   const { phase, day, conquest, adventureRow, adventureDeck, discoveredLocations, horde,
     players, activePlayerIndex, playerCount, cardSlots, message, gameResult, helpPhase } = state;
@@ -47,8 +52,6 @@ export default function App() {
   const canAct = !action && phase === 'day';
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
-
-  const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('adventure');
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
   const [draggedCubeType, setDraggedCubeType] = useState(null);
@@ -56,6 +59,15 @@ export default function App() {
   // Reset viewed player when active player changes
   const viewedPlayer = players[viewedPlayerIndex] ?? activePlayer;
   const isViewingOwn = viewedPlayerIndex === activePlayerIndex;
+
+  // Build player location token map: cardId → [{ index, color }]
+  const playerTokensMap = {};
+  for (const p of players) {
+    if (p.currentLocation) {
+      if (!playerTokensMap[p.currentLocation]) playerTokensMap[p.currentLocation] = [];
+      playerTokensMap[p.currentLocation].push({ index: p.id, color: PLAYER_COLORS[p.id] });
+    }
+  }
 
   // Calculate power and bust threshold for display
   const power = calculatePower(activePlayer);
@@ -106,6 +118,7 @@ export default function App() {
             selectedId={action?.targetId}
             canAct={canAct}
             cardSlots={cardSlots}
+            playerTokensMap={playerTokensMap}
           />
           {discoveredLocations.length > 0 && (
             <DiscoveredLocations
@@ -116,6 +129,7 @@ export default function App() {
               onCubeDrop={cubeDrop}
               isDusk={isDusk}
               draggedCubeType={draggedCubeType}
+              playerTokensMap={playerTokensMap}
             />
           )}
         </>
@@ -138,13 +152,14 @@ export default function App() {
           cardSlots={cardSlots}
           onFortressClick={startFortressCombat}
           onVillainClick={startVillainCombat}
+          playerTokensMap={playerTokensMap}
         />
       ),
     },
   ];
 
   if (showLanding) {
-    return <LandingPage onPlay={() => setShowLanding(false)} />;
+    return <LandingPage onPlay={(config) => { setGameConfig(config); setShowLanding(false); }} />;
   }
 
   return (

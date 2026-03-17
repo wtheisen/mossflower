@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { DEMO_ADVENTURE_ROW, DEMO_ADVENTURE_DECK, DEMO_DISCOVERED, DEMO_HORDE, DEMO_PLAYER } from '../data/cards';
+import { CHAMPIONS, BASE_LOCATIONS, expandStartingBag, buildAdventure, buildHorde } from '../data/cards';
 import { ABILITIES } from '../data/abilities';
 
 const BUST_TYPES = new Set(['inexperience', 'vermin', 'wound']);
@@ -193,14 +193,18 @@ function passesSlotFilter(slotFilter, cubeType) {
 
 // ── Player helpers ──────────────────────────────────
 
-function createPlayer(index) {
+export const PLAYER_COLORS = ['#c49a2a', '#5b82a6', '#8a6aaa', '#a05040'];
+
+function createPlayer(index, championId) {
+  const champion = CHAMPIONS.find(c => c.id === championId) ?? CHAMPIONS[0];
+  const bag = shuffleArray(expandStartingBag(champion.startingBag));
   return {
     id: index,
-    champion: DEMO_PLAYER.champion,
-    tableau: [...DEMO_PLAYER.tableau],
-    placements: { ...DEMO_PLAYER.placements },
-    abilityPlacements: { ...(DEMO_PLAYER.abilityPlacements ?? {}) },
-    bag: shuffleArray(DEMO_PLAYER.bag),
+    champion,
+    tableau: [],
+    placements: {},
+    abilityPlacements: {},
+    bag,
     band: [],
     action: null,
     bustCount: 0,
@@ -209,6 +213,7 @@ function createPlayer(index) {
     nightReturns: 0,
     actionsUsed: 0,
     passed: false,
+    currentLocation: null,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
     // Helping Hands state
     helpBand: [],
@@ -223,18 +228,15 @@ function patchPlayer(s, playerIndex, patch) {
   return { ...s, players };
 }
 
-function buildInitialState(playerCount) {
+function buildInitialState(config) {
+  const { playerCount, championIds, villainId } = config;
   const players = [];
   for (let i = 0; i < playerCount; i++) {
-    players.push(createPlayer(i));
+    players.push(createPlayer(i, championIds[i]));
   }
-  const horde = {
-    fortress: DEMO_HORDE.fortress,
-    fortressDeck: [...DEMO_HORDE.fortressDeck],
-    fortressCleared: false,
-    villain: DEMO_HORDE.villain,
-  };
-  const cardSlots = initCardSlots(DEMO_ADVENTURE_ROW);
+  const horde = buildHorde(villainId);
+  const { adventureRow, adventureDeck } = buildAdventure(shuffleArray);
+  const cardSlots = initCardSlots(adventureRow);
 
   // Initialize fortress vermin
   if (horde.fortress) {
@@ -262,10 +264,10 @@ function buildInitialState(playerCount) {
     gameResult: null,
 
     // Shared board
-    adventureRow: [...DEMO_ADVENTURE_ROW],
-    discoveredLocations: [...DEMO_DISCOVERED],
+    adventureRow,
+    discoveredLocations: [...BASE_LOCATIONS],
     horde,
-    adventureDeck: shuffleArray([...DEMO_ADVENTURE_DECK]),
+    adventureDeck: shuffleArray(adventureDeck),
     cardSlots,
 
     message: null,
@@ -567,8 +569,8 @@ function createAbilityCtx(state) {
   };
 }
 
-export default function useGameState(playerCount = 2) {
-  const [state, setState] = useState(() => buildInitialState(playerCount));
+export default function useGameState(config) {
+  const [state, setState] = useState(() => buildInitialState(config));
 
   // ── Day Actions ─────────────────────────────────────
 
@@ -583,6 +585,7 @@ export default function useGameState(playerCount = 2) {
         action: { type: 'recruit', targetId: cardId },
         bustCount: 0,
         busted: false,
+        currentLocation: cardId,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
       result.message = `Recruiting ${card.name} (cost: ${card.cost} food) — draw cubes from your bag.`;
@@ -616,6 +619,7 @@ export default function useGameState(playerCount = 2) {
           action: { type: 'combat', targetId: cardId, verminAdded: verminOnCard },
           bustCount: 0,
           busted: false,
+          currentLocation: cardId,
           drawBonuses: { power: 0, bagAdds: [], messages: [] },
         });
         result.message = `Combat at ${loc.name}! ${verminOnCard} vermin added to your bag. Draw at least ${verminOnCard} cubes.`;
@@ -631,7 +635,7 @@ export default function useGameState(playerCount = 2) {
       ability.onAction(ctx);
       const { playerPatch, message } = ctx._apply();
 
-      let result = patchActivePlayer(s, playerPatch);
+      let result = patchActivePlayer(s, { ...playerPatch, currentLocation: cardId });
       result.message = message;
 
       const inAdventureRow = s.adventureRow.some((c) => c.id === cardId);
@@ -1201,6 +1205,9 @@ export default function useGameState(playerCount = 2) {
       // Check if it's a location (worker placement)
       const loc = s.discoveredLocations.find((c) => c.id === cardId);
       if (loc) {
+        if (p.currentLocation !== cardId) {
+          return { ...s, message: `You can only place workers at your current location.` };
+        }
         if (BUST_TYPES.has(cubeType)) {
           const hint = cubeType === 'inexperience'
             ? 'Inexperience must be placed on your Champion.'
@@ -1396,6 +1403,7 @@ export default function useGameState(playerCount = 2) {
         action: { type: 'combat', targetId: fortressId, verminAdded: verminCount, combatTarget: 'fortress' },
         bustCount: 0,
         busted: false,
+        currentLocation: fortressId,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
       result.message = `Attacking ${fortress.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
@@ -1429,6 +1437,7 @@ export default function useGameState(playerCount = 2) {
         action: { type: 'combat', targetId: villainId, verminAdded: verminCount, combatTarget: 'villain' },
         bustCount: 0,
         busted: false,
+        currentLocation: villainId,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
       result.message = `Final battle with ${villain.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
@@ -1437,8 +1446,8 @@ export default function useGameState(playerCount = 2) {
   }, []);
 
   const restartGame = useCallback(() => {
-    setState(buildInitialState(playerCount));
-  }, [playerCount]);
+    setState(buildInitialState(config));
+  }, [config]);
 
   return {
     state,

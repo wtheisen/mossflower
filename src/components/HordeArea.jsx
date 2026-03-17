@@ -179,7 +179,7 @@ const styles = {
 export default function HordeArea({
   fortress, fortressDeck = [], fortressCleared, villain,
   conquest = 0, canAct, cardSlots = {},
-  onFortressClick, onVillainClick,
+  onFortressClick, onVillainClick, playerTokensMap = {},
 }) {
   const filled = Array.from({ length: conquest }, () => ({ type: 'vermin' }));
   const fortressVermin = fortress ? (cardSlots[fortress.id] ?? []) : [];
@@ -197,7 +197,7 @@ export default function HordeArea({
               style={canAct ? styles.clickable : undefined}
               onClick={canAct && onFortressClick ? () => onFortressClick(fortress.id) : undefined}
             >
-              <Card card={fortress} filledSlots={fortressVermin} />
+              <Card card={fortress} filledSlots={fortressVermin} playerTokens={playerTokensMap[fortress.id]} />
             </div>
           ) : (
             <div style={styles.clearedPlaceholder}>Cleared</div>
@@ -223,7 +223,7 @@ export default function HordeArea({
             }}
             onClick={canAct && !villainLocked && onVillainClick ? () => onVillainClick(villain.id) : undefined}
           >
-            <Card card={villain} filledSlots={villainVermin} />
+            <Card card={villain} filledSlots={villainVermin} playerTokens={playerTokensMap[villain.id]} />
             {villainLocked && (
               <div style={styles.lockedBadge}>Locked</div>
             )}
