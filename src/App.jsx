@@ -7,7 +7,7 @@ import Bag from './components/Bag';
 import Band from './components/Band';
 import HordeArea from './components/HordeArea';
 import DiscoveredLocations from './components/DiscoveredLocations';
-import BoardTabs from './components/BoardTabs';
+
 import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
 import useGameState, { PLAYER_COLORS } from './hooks/useGameState';
@@ -19,6 +19,23 @@ const styles = {
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
+  },
+  mainArea: {
+    flex: 1,
+    display: 'flex',
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  leftColumn: {
+    flex: 1,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    minWidth: 0,
+  },
+  rightColumn: {
+    flexShrink: 0,
+    borderLeft: '2px solid var(--border-card)',
+    overflowY: 'auto',
   },
   playerArea: {
     borderTop: '2px solid var(--border-card)',
@@ -52,7 +69,6 @@ export default function App() {
   const canAct = !action && phase === 'day';
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
-  const [activeTab, setActiveTab] = useState('adventure');
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
   const [draggedCubeType, setDraggedCubeType] = useState(null);
 
@@ -102,14 +118,24 @@ export default function App() {
   // During dusk, cards accept cube drops
   const cubeDrop = isDusk ? dropCube : undefined;
 
-  const tabs = [
-    {
-      id: 'adventure',
-      label: 'Adventure',
-      badge: adventureRow.length + (discoveredLocations.length > 0 ? ` / ${discoveredLocations.length}L` : ''),
-      accentColor: 'var(--type-hero)',
-      content: (
-        <>
+
+  if (showLanding) {
+    return <LandingPage onPlay={(config) => { setGameConfig(config); startGame(config); setShowLanding(false); }} />;
+  }
+
+  return (
+    <div style={styles.board}>
+      <StatusBar
+        day={day}
+        phase={phase}
+        conquest={conquest}
+        activePlayerIndex={activePlayerIndex}
+        playerCount={playerCount}
+        championName={activePlayer.champion.name}
+      />
+
+      <div style={styles.mainArea}>
+        <div style={styles.leftColumn}>
           <AdventureRow
             cards={adventureRow}
             deckSize={adventureDeck.length}
@@ -132,52 +158,21 @@ export default function App() {
               playerTokensMap={playerTokensMap}
             />
           )}
-        </>
-      ),
-    },
-    {
-      id: 'horde',
-      label: 'Horde',
-      badge: `${conquest}/10`,
-      badgeColor: conquest >= 7 ? 'var(--accent-red)' : 'var(--type-fortress)',
-      accentColor: 'var(--accent-red)',
-      content: (
-        <HordeArea
-          fortress={horde.fortress}
-          fortressDeck={horde.fortressDeck}
-          fortressCleared={horde.fortressCleared}
-          villain={horde.villain}
-          conquest={conquest}
-          canAct={canAct}
-          cardSlots={cardSlots}
-          onFortressClick={startFortressCombat}
-          onVillainClick={startVillainCombat}
-          playerTokensMap={playerTokensMap}
-        />
-      ),
-    },
-  ];
-
-  if (showLanding) {
-    return <LandingPage onPlay={(config) => { setGameConfig(config); startGame(config); setShowLanding(false); }} />;
-  }
-
-  return (
-    <div style={styles.board}>
-      <StatusBar
-        day={day}
-        phase={phase}
-        conquest={conquest}
-        activePlayerIndex={activePlayerIndex}
-        playerCount={playerCount}
-        championName={activePlayer.champion.name}
-      />
-
-      <BoardTabs
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+        </div>
+        <div style={styles.rightColumn}>
+          <HordeArea
+            fortress={horde.fortress}
+            fortressDeck={horde.fortressDeck}
+            fortressCleared={horde.fortressCleared}
+            villain={horde.villain}
+            canAct={canAct}
+            cardSlots={cardSlots}
+            onFortressClick={startFortressCombat}
+            onVillainClick={startVillainCombat}
+            playerTokensMap={playerTokensMap}
+          />
+        </div>
+      </div>
 
       <div style={styles.playerArea}>
         <PlayerTableau
