@@ -6,6 +6,7 @@ const styles = {
     gap: '5px',
     flexWrap: 'wrap',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   slot: {
     width: 'var(--slot-size)',

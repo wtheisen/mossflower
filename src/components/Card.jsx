@@ -71,7 +71,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '6px 8px 5px',
+    padding: '4px 8px 3px',
     gap: '4px',
     minHeight: '28px',
   },
@@ -91,8 +91,8 @@ const styles = {
     width: '22px',
     height: '22px',
     borderRadius: '50%',
-    background: 'rgba(0,0,0,0.2)',
-    border: '1.5px solid rgba(255,255,255,0.35)',
+    background: 'var(--cube-food)',
+    border: '1.5px solid rgba(255,255,255,0.4)',
     fontSize: '12px',
     fontWeight: 800,
     fontFamily: 'var(--font-display)',
@@ -103,7 +103,7 @@ const styles = {
   /* ── Art box ── */
   artBox: {
     margin: '0 5px',
-    height: '80px',
+    height: '55px',
     borderRadius: '4px',
     border: '1.5px solid rgba(0,0,0,0.15)',
     position: 'relative',
@@ -124,8 +124,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
-    padding: '4px 8px',
-    margin: '4px 5px 0',
+    padding: '3px 8px',
+    margin: '2px 5px 0',
     borderRadius: '3px',
     background: 'var(--bg-elevated)',
     borderTop: '1px solid var(--border-subtle)',
@@ -142,8 +142,8 @@ const styles = {
   },
   /* ── Text box ── */
   textBox: {
-    padding: '5px 8px',
-    margin: '3px 5px 0',
+    padding: '4px 8px',
+    margin: '2px 5px 0',
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
@@ -173,9 +173,10 @@ const styles = {
   },
   /* ── Slots footer ── */
   slotsFooter: {
-    padding: '4px 8px 6px',
+    padding: '3px 8px 5px',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '4px',
   },
   slotsLabel: {
