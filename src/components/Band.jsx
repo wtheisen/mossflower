@@ -2,23 +2,26 @@ import CubeChip from './CubeChip';
 
 const styles = {
   container: {
-    background: 'var(--bg-card)',
+    background: 'linear-gradient(170deg, var(--bg-card) 0%, var(--bg-elevated) 100%)',
     border: '2px solid var(--border-card)',
     borderRadius: 'var(--radius)',
-    padding: '10px 12px',
+    padding: '12px 14px',
     minWidth: '140px',
+    boxShadow: '0 2px 6px rgba(100, 80, 50, 0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
   },
   label: {
-    fontSize: '10px',
+    fontSize: '11px',
     textTransform: 'uppercase',
-    letterSpacing: '0.08em',
+    letterSpacing: '0.1em',
     color: 'var(--text-muted)',
     fontWeight: 600,
-    marginBottom: '8px',
+    fontFamily: 'var(--font-display)',
+    marginBottom: '6px',
   },
   count: {
-    fontSize: '20px',
+    fontSize: '22px',
     fontWeight: 700,
+    fontFamily: 'var(--font-display)',
     color: 'var(--text-primary)',
     marginBottom: '8px',
   },
@@ -29,7 +32,7 @@ const styles = {
     marginBottom: '8px',
   },
   empty: {
-    fontSize: '12px',
+    fontSize: '13px',
     color: 'var(--text-muted)',
     fontStyle: 'italic',
   },
@@ -37,28 +40,36 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '6px',
-    marginTop: '4px',
+    marginTop: '6px',
   },
   btn: {
-    padding: '6px 10px',
-    borderRadius: 'var(--radius-sm)',
+    padding: '8px 12px',
+    borderRadius: '8px',
     border: 'none',
-    fontSize: '12px',
+    fontSize: '13px',
     fontWeight: 600,
     cursor: 'pointer',
-    fontFamily: 'var(--font)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '0.04em',
+    transition: 'transform 0.1s, box-shadow 0.15s',
   },
   btnDraw: {
-    background: 'var(--accent-gold)',
-    color: '#000',
+    background: 'linear-gradient(180deg, #c9a020 0%, #a07810 100%)',
+    color: '#fff',
+    boxShadow: '0 2px 6px rgba(160, 120, 16, 0.3)',
+    textShadow: '0 1px 2px rgba(80, 60, 10, 0.4)',
   },
   btnRecruit: {
-    background: '#4a90d9',
+    background: 'linear-gradient(180deg, #6b94b8 0%, #4a7a9e 100%)',
     color: '#fff',
+    boxShadow: '0 2px 6px rgba(74, 122, 158, 0.3)',
+    textShadow: '0 1px 2px rgba(40, 60, 80, 0.4)',
   },
   btnCombat: {
-    background: 'var(--accent-red, #c44b4b)',
+    background: 'linear-gradient(180deg, #b86050 0%, #a04535 100%)',
     color: '#fff',
+    boxShadow: '0 2px 6px rgba(160, 69, 53, 0.3)',
+    textShadow: '0 1px 2px rgba(80, 30, 20, 0.4)',
   },
   btnCancel: {
     background: 'transparent',
@@ -70,43 +81,49 @@ const styles = {
     cursor: 'not-allowed',
   },
   message: {
-    fontSize: '11px',
+    fontSize: '12px',
     color: 'var(--text-secondary)',
-    lineHeight: 1.35,
+    lineHeight: 1.4,
     marginTop: '6px',
+    fontStyle: 'italic',
   },
   bustMessage: {
     color: 'var(--accent-red)',
     fontWeight: 600,
+    fontStyle: 'normal',
   },
   powerRow: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'baseline',
     gap: '8px',
     marginBottom: '6px',
-    fontSize: '12px',
+    fontSize: '13px',
   },
   powerLabel: {
     color: 'var(--text-muted)',
     fontSize: '10px',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.08em',
     fontWeight: 600,
+    fontFamily: 'var(--font-display)',
   },
   powerValue: {
     fontWeight: 700,
     color: 'var(--accent-gold)',
-    fontSize: '16px',
+    fontSize: '18px',
+    fontFamily: 'var(--font-display)',
   },
   bustInfo: {
-    fontSize: '10px',
+    fontSize: '11px',
     color: 'var(--text-muted)',
     marginBottom: '4px',
+    fontStyle: 'italic',
   },
   triggerMsg: {
-    fontSize: '10px',
+    fontSize: '11px',
     color: 'var(--accent-gold)',
     fontWeight: 600,
+    fontFamily: 'var(--font-display)',
     padding: '2px 0',
   },
 };
@@ -148,7 +165,7 @@ export default function Band({
 
       {/* Next-draw teaser */}
       {inAction && !busted && nextDrawTeaser && (
-        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px', fontStyle: 'italic' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px', fontStyle: 'italic' }}>
           {nextDrawTeaser}
         </div>
       )}

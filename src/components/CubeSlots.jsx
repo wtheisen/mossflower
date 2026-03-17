@@ -3,31 +3,33 @@ import { CUBE_TYPES } from '../data/cards';
 const styles = {
   row: {
     display: 'flex',
-    gap: '4px',
+    gap: '5px',
     flexWrap: 'wrap',
     alignItems: 'center',
   },
   slot: {
     width: 'var(--slot-size)',
     height: 'var(--slot-size)',
-    borderRadius: '3px',
+    borderRadius: '5px',
     border: '2px dashed var(--border-card)',
-    background: 'transparent',
+    background: 'rgba(210, 195, 170, 0.3)',
     flexShrink: 0,
   },
   filled: {
     width: 'var(--slot-size)',
     height: 'var(--slot-size)',
-    borderRadius: '3px',
-    border: '2px solid rgba(255,255,255,0.2)',
+    borderRadius: '5px',
+    border: '2px solid rgba(255,255,255,0.25)',
     flexShrink: 0,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '8px',
+    fontSize: '9px',
     fontWeight: 700,
+    fontFamily: 'var(--font-display)',
     color: '#fff',
-    textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+    textShadow: '0 1px 2px rgba(60,40,20,0.5)',
+    boxShadow: '0 1px 3px rgba(100, 80, 50, 0.2)',
   },
 };
 
@@ -52,7 +54,7 @@ export default function CubeSlots({ total, filled = [], onSlotClick }) {
             ...styles.filled,
             background: info?.color ?? '#555',
             cursor: clickable ? 'pointer' : 'default',
-            ...(clickable ? { outline: '1px dashed rgba(255,255,255,0.4)', outlineOffset: '1px' } : {}),
+            ...(clickable ? { outline: '1px dashed var(--accent-gold)', outlineOffset: '2px' } : {}),
           }}
           title={clickable ? `Click to return ${info?.label ?? cube.type} to bag` : (info?.label ?? cube.type)}
           onClick={clickable ? (e) => { e.stopPropagation(); onSlotClick(i); } : undefined}

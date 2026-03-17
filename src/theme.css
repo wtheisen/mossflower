@@ -1,54 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 :root {
-  /* Surface colors */
-  --bg-deep: #0e1117;
-  --bg-surface: #171c24;
-  --bg-card: #1e2430;
-  --bg-elevated: #262e3c;
+  /* Parchment & cream surfaces */
+  --bg-deep: #f0e8d4;
+  --bg-surface: #f7f1e1;
+  --bg-card: #faf6ec;
+  --bg-elevated: #f3ebd5;
 
-  /* Text */
-  --text-primary: #e2e6ed;
-  --text-secondary: #8b95a5;
-  --text-muted: #5a6474;
+  /* Sepia & brown text */
+  --text-primary: #3d2b1f;
+  --text-secondary: #6b5744;
+  --text-muted: #9b8b74;
 
-  /* Borders */
-  --border-subtle: #2a3344;
-  --border-card: #364155;
+  /* Borders — hand-drawn feel */
+  --border-subtle: #d4c4a8;
+  --border-card: #c2ae8e;
 
-  /* Accent */
-  --accent-gold: #c9a84c;
-  --accent-red: #c44b4b;
+  /* Accent — warm honey & bramble */
+  --accent-gold: #b8860b;
+  --accent-red: #a0522d;
 
-  /* Cube colors */
-  --cube-mouse: #9a9aa0;
-  --cube-squirrel: #4aaa4a;
-  --cube-hare: #d4b840;
-  --cube-otter: #3d8ec9;
-  --cube-mole: #8b6542;
-  --cube-badger: #c44b4b;
-  --cube-food: #9b59b6;
-  --cube-inexperience: #e0e0e0;
-  --cube-mastery: #f0d060;
-  --cube-vermin: #1a1a1a;
-  --cube-wound: #222222;
+  /* Cube colors — soft watercolor palette */
+  --cube-mouse: #a8a0b0;
+  --cube-squirrel: #7daa6d;
+  --cube-hare: #d4b86a;
+  --cube-otter: #6a9ab8;
+  --cube-mole: #a07850;
+  --cube-badger: #b86868;
+  --cube-food: #9a7bb5;
+  --cube-inexperience: #d5cfc2;
+  --cube-mastery: #dab54d;
+  --cube-vermin: #4a3c30;
+  --cube-wound: #5a3a3a;
 
-  /* Card type borders */
-  --type-champion: var(--accent-gold);
-  --type-hero: #4a90d9;
-  --type-location: #5aaa5a;
-  --type-quest: #b06ad9;
-  --type-fortress: #8b5e3c;
-  --type-villain: #c44b4b;
+  /* Card type borders — botanical/earthy */
+  --type-champion: #b8860b;
+  --type-hero: #5b82a6;
+  --type-location: #6a9a5a;
+  --type-quest: #8a6aaa;
+  --type-fortress: #8b6842;
+  --type-villain: #a05040;
 
   /* Sizing */
   --card-width: 160px;
   --card-height: 224px;
-  --cube-size: 20px;
-  --slot-size: 18px;
-  --radius: 8px;
-  --radius-sm: 4px;
+  --cube-size: 22px;
+  --slot-size: 20px;
+  --radius: 10px;
+  --radius-sm: 6px;
 
-  /* Font */
-  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Fonts */
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body: 'Crimson Text', 'Georgia', serif;
+  --font: var(--font-body);
 }
 
 *,
@@ -60,16 +64,64 @@
 }
 
 body {
-  font-family: var(--font);
+  font-family: var(--font-body);
   background: var(--bg-deep);
   color: var(--text-primary);
   min-height: 100vh;
-  line-height: 1.4;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Subtle parchment texture via noise gradient */
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(210, 180, 140, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(180, 160, 120, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(200, 175, 130, 0.2) 0%, transparent 45%);
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Decorative botanical border frame */
+  border: 3px double var(--border-card);
+  margin: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px var(--border-subtle),
+    0 4px 24px rgba(100, 80, 50, 0.15);
+}
+
+/* Scrollbar styling for the storybook feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-elevated);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-card);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Button base — storybook feel */
+button {
+  font-family: var(--font-body);
+  letter-spacing: 0.02em;
+}
+
+/* Subtle page-turn animation for cards */
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(6px) rotate(-1deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
 }

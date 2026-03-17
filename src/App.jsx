@@ -21,9 +21,9 @@ const styles = {
     justifyContent: 'center',
   },
   playerArea: {
-    borderTop: '1px solid var(--border-subtle)',
-    background: 'var(--bg-surface)',
-    padding: '16px 20px',
+    borderTop: '2px solid var(--border-card)',
+    background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
+    padding: '18px 24px',
     display: 'flex',
     gap: '16px',
     alignItems: 'flex-start',

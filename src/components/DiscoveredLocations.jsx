@@ -2,15 +2,17 @@ import Card from './Card';
 
 const styles = {
   section: {
-    padding: '8px 20px 16px',
+    padding: '8px 24px 16px',
   },
   label: {
-    fontSize: '11px',
+    fontSize: '12px',
     textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    color: 'var(--text-muted)',
+    letterSpacing: '0.12em',
+    color: 'var(--type-location)',
     marginBottom: '10px',
-    fontWeight: 600,
+    fontWeight: 700,
+    fontFamily: 'var(--font-display)',
+    fontStyle: 'italic',
   },
   row: {
     display: 'flex',

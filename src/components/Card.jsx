@@ -10,6 +10,15 @@ const TYPE_COLORS = {
   villain: 'var(--type-villain)',
 };
 
+const TYPE_BG = {
+  champion: 'rgba(184, 134, 11, 0.08)',
+  hero: 'rgba(91, 130, 166, 0.08)',
+  location: 'rgba(106, 154, 90, 0.08)',
+  quest: 'rgba(138, 106, 170, 0.08)',
+  fortress: 'rgba(139, 104, 66, 0.08)',
+  villain: 'rgba(160, 80, 64, 0.08)',
+};
+
 const styles = {
   card: {
     width: 'var(--card-width)',
@@ -21,31 +30,35 @@ const styles = {
     overflow: 'hidden',
     position: 'relative',
     flexShrink: 0,
+    animation: 'fadeInPage 0.4s ease-out both',
   },
   header: {
-    padding: '8px 10px 6px',
+    padding: '10px 12px 8px',
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
   },
   typeBadge: {
     fontSize: '9px',
+    fontFamily: 'var(--font-display)',
     fontWeight: 700,
     textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    padding: '2px 6px',
-    borderRadius: 'var(--radius-sm)',
+    letterSpacing: '0.12em',
+    padding: '2px 8px',
+    borderRadius: '10px',
     alignSelf: 'flex-start',
     color: '#fff',
   },
   name: {
-    fontSize: '13px',
+    fontSize: '14px',
+    fontFamily: 'var(--font-display)',
     fontWeight: 600,
     color: 'var(--text-primary)',
-    lineHeight: 1.2,
+    lineHeight: 1.25,
+    fontStyle: 'italic',
   },
   body: {
-    padding: '0 10px 8px',
+    padding: '0 12px 10px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
@@ -57,37 +70,43 @@ const styles = {
     flexWrap: 'wrap',
   },
   abilityText: {
-    fontSize: '11px',
+    fontSize: '12px',
     color: 'var(--text-secondary)',
-    lineHeight: 1.35,
+    lineHeight: 1.4,
+    fontStyle: 'italic',
   },
   costRow: {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    fontSize: '11px',
+    fontSize: '12px',
     color: 'var(--text-muted)',
   },
   costValue: {
     fontWeight: 700,
     color: 'var(--accent-gold)',
-    fontSize: '13px',
+    fontSize: '14px',
+    fontFamily: 'var(--font-display)',
   },
   slotsSection: {
     marginTop: 'auto',
-    padding: '6px 10px 10px',
+    padding: '6px 12px 12px',
+    borderTop: '1px dashed var(--border-subtle)',
   },
   slotsLabel: {
     fontSize: '9px',
     color: 'var(--text-muted)',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    marginBottom: '4px',
+    letterSpacing: '0.08em',
+    marginBottom: '5px',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
   },
 };
 
 export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick }) {
   const borderColor = TYPE_COLORS[card.type] ?? 'var(--border-card)';
+  const bgTint = TYPE_BG[card.type] ?? 'transparent';
 
   const totalSlots =
     card.tableauSlots ?? card.slots ?? 0;
@@ -122,15 +141,16 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
         ...styles.card,
         width: wide ? 'calc(var(--card-width) * 2 + 12px)' : 'var(--card-width)',
         border: selected
-          ? '2px solid #fff'
+          ? `2px solid var(--accent-gold)`
           : `2px solid ${borderColor}`,
+        background: `linear-gradient(170deg, var(--bg-card) 0%, ${bgTint} 100%)`,
         boxShadow: selected
-          ? '0 0 16px rgba(255,255,255,0.25), 0 2px 12px rgba(0,0,0,0.4)'
+          ? `0 0 12px rgba(184, 134, 11, 0.3), 0 3px 12px rgba(100, 80, 50, 0.2)`
           : highlighted
-            ? `0 0 12px ${borderColor}40, 0 2px 12px rgba(0,0,0,0.4)`
-            : '0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)',
+            ? `0 0 8px ${borderColor}30, 0 2px 8px rgba(100, 80, 50, 0.15)`
+            : '0 2px 8px rgba(100, 80, 50, 0.12), inset 0 1px 0 rgba(255,255,255,0.5)',
         cursor: interactive ? 'pointer' : 'default',
-        transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
+        transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
         transform: selected ? 'translateY(-4px)' : 'none',
       }}
     >
@@ -164,7 +184,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
             <div style={styles.costRow}>
               Cost: <span style={styles.costValue}>{card.cost}</span> food
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
               Excess power removes inexperience
             </div>
           </>
