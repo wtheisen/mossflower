@@ -24,21 +24,21 @@ const styles = {
     background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
     padding: '12px 24px',
     display: 'flex',
-    gap: '16px',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: '12px',
+    alignItems: 'center',
     flexShrink: 0,
     overflowX: 'auto',
   },
   tableauWrap: {
-    flex: 1,
+    width: '100%',
     minWidth: 0,
   },
-  sidebar: {
+  bandBagRow: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    flexShrink: 0,
+    gap: '16px',
+    justifyContent: 'center',
+    width: '100%',
   },
 };
 
@@ -185,8 +185,7 @@ export default function App() {
             onReturnCube={isNight && nightReturns < 2 ? returnCubeToBag : undefined}
           />
         </div>
-        <div style={styles.sidebar}>
-          <Bag cubes={bag} />
+        <div style={styles.bandBagRow}>
           <Band
             cubes={band}
             action={action}
@@ -210,6 +209,7 @@ export default function App() {
             nightReturns={nightReturns}
             onEndNight={endNight}
           />
+          <Bag cubes={bag} />
         </div>
       </div>
 
