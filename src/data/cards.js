@@ -134,6 +134,26 @@ export const HEROES = [
     critters: { squirrel: 2 },
     abilityText: 'When you remove Vermin from a Location, add 1 Food there per Squirrel on this hero.',
   },
+  {
+    id: 'hero-orlando',
+    name: 'Orlando the Axe',
+    type: 'hero',
+    affinity: 'badger',
+    slots: 5,
+    cost: 3,
+    critters: { badger: 2, hare: 1 },
+    abilityText: 'Each badger cube here grants +2 power. Occupies 2 tableau slots.',
+  },
+  {
+    id: 'hero-constance',
+    name: 'Constance the Badger',
+    type: 'hero',
+    affinity: 'badger',
+    slots: 4,
+    cost: 2,
+    critters: { badger: 1, mouse: 2 },
+    abilityText: 'When you win combat, remove 1 extra Vermin from any location. Occupies 2 tableau slots.',
+  },
 ];
 
 /**

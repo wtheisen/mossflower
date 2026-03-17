@@ -134,6 +134,7 @@ export default function DuskOverlay({
                 key={hero.id}
                 card={hero}
                 filledSlots={placements[hero.id] ?? []}
+                wide={hero.affinity === 'badger'}
                 onClick={hasSelection ? () => onPlaceOnCard(hero.id) : undefined}
                 highlighted={hasSelection}
               />

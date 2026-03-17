@@ -884,6 +884,14 @@ export default function useGameState(config) {
       const target = s.adventureRow.find((c) => c.id === p.action.targetId);
       if (!target) return s;
 
+      // Check tableau slot capacity (badger heroes occupy 2 slots)
+      const usedSlots = p.tableau.reduce((sum, h) => sum + (h.affinity === 'badger' ? 2 : 1), 0);
+      const slotsNeeded = target.affinity === 'badger' ? 2 : 1;
+      const maxSlots = p.champion.tableauSlots ?? 5;
+      if (usedSlots + slotsNeeded > maxSlots) {
+        return { ...s, message: `Not enough tableau space! Need ${slotsNeeded} slot(s), have ${maxSlots - usedSlots} free.` };
+      }
+
       // Recruit gates on food only
       const foodCount = p.band.filter((c) => c === 'food').length;
       if (foodCount < target.cost) {

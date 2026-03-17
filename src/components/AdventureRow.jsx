@@ -73,6 +73,7 @@ export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocat
               key={card.id}
               card={card}
               filledSlots={cardSlots[card.id] ?? []}
+              wide={card.affinity === 'badger'}
               onClick={clickable
                 ? () => (isHero ? onCardClick : onLocationClick)?.(card.id)
                 : undefined}

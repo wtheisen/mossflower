@@ -367,6 +367,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                 <Card
                   card={hero}
                   filledSlots={placements[hero.id] ?? []}
+                  wide={hero.affinity === 'badger'}
                   onCubeDrop={onCubeDrop}
                   onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
                 />
