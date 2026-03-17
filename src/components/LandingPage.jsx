@@ -337,7 +337,7 @@ export default function LandingPage({ onPlay }) {
         )}
 
         {step === 'setup' && (
-          <div style={{ width: '100%', maxWidth: '700px' }}>
+          <div style={{ width: '100%', maxWidth: '900px' }}>
             {/* Player count */}
             <div style={styles.sectionLabel}>Players</div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
@@ -355,58 +355,62 @@ export default function LandingPage({ onPlay }) {
               ))}
             </div>
 
-            {/* Player tabs for champion picking */}
-            <div style={styles.sectionLabel}>
-              Choose Champion — Player {currentPicker + 1}
-            </div>
-            {playerCount > 1 && (
-              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px' }}>
-                {Array.from({ length: playerCount }, (_, i) => (
-                  <button key={i} onClick={() => setCurrentPicker(i)} style={{
-                    fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
-                    padding: '4px 14px', borderRadius: '20px',
-                    border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
-                    background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
-                    color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                  }}>
-                    P{i + 1}{championIds[i] ? ' \u2713' : ''}
-                  </button>
-                ))}
+            {/* Two-column layout: Champions | Horde */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px',
+              marginBottom: '24px', alignItems: 'start',
+            }}>
+              {/* Left column — Champion selection */}
+              <div>
+                <div style={styles.sectionLabel}>
+                  Choose Champion — Player {currentPicker + 1}
+                </div>
+                {playerCount > 1 && (
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px' }}>
+                    {Array.from({ length: playerCount }, (_, i) => (
+                      <button key={i} onClick={() => setCurrentPicker(i)} style={{
+                        fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
+                        padding: '4px 14px', borderRadius: '20px',
+                        border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
+                        background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
+                        color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
+                        cursor: 'pointer', transition: 'all 0.2s ease',
+                      }}>
+                        P{i + 1}{championIds[i] ? ' \u2713' : ''}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '10px', justifyItems: 'center',
+                }}>
+                  {CHAMPIONS.map(c => (
+                    <ChampionCard
+                      key={c.id}
+                      champion={c}
+                      selected={championIds[currentPicker] === c.id}
+                      taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
+                      onClick={() => handlePickChampion(c.id)}
+                    />
+                  ))}
+                </div>
               </div>
-            )}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '10px',
-              marginBottom: '20px',
-              justifyItems: 'center',
-            }}>
-              {CHAMPIONS.map(c => (
-                <ChampionCard
-                  key={c.id}
-                  champion={c}
-                  selected={championIds[currentPicker] === c.id}
-                  taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
-                  onClick={() => handlePickChampion(c.id)}
-                />
-              ))}
-            </div>
 
-            {/* Villain selector */}
-            <div style={styles.sectionLabel}>Villain</div>
-            <div style={{
-              display: 'flex', gap: '12px', justifyContent: 'center',
-              marginBottom: '24px', flexWrap: 'wrap',
-            }}>
-              {VILLAINS.map(v => (
-                <VillainCard
-                  key={v.id}
-                  villain={v}
-                  selected={villainId === v.id}
-                  onClick={() => setVillainId(v.id)}
-                />
-              ))}
+              {/* Right column — Horde / Villain selection */}
+              <div>
+                <div style={styles.sectionLabel}>Villain</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                  {VILLAINS.map(v => (
+                    <VillainCard
+                      key={v.id}
+                      villain={v}
+                      selected={villainId === v.id}
+                      onClick={() => setVillainId(v.id)}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Start button */}
