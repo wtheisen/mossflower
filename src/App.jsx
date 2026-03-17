@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import StatusBar from './components/StatusBar';
 import AdventureRow from './components/AdventureRow';
 import PlayerTableau from './components/PlayerTableau';
@@ -5,6 +6,7 @@ import Bag from './components/Bag';
 import Band from './components/Band';
 import HordeArea from './components/HordeArea';
 import DiscoveredLocations from './components/DiscoveredLocations';
+import BoardTabs from './components/BoardTabs';
 import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
 import useGameState from './hooks/useGameState';
@@ -14,20 +16,18 @@ const styles = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-  },
-  middle: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
+    height: '100vh',
+    overflow: 'hidden',
   },
   playerArea: {
     borderTop: '2px solid var(--border-card)',
     background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
-    padding: '18px 24px',
+    padding: '12px 24px',
     display: 'flex',
     gap: '16px',
     alignItems: 'flex-start',
+    flexShrink: 0,
+    overflowX: 'auto',
   },
   tableauWrap: {
     flex: 1,
@@ -59,6 +59,8 @@ export default function App() {
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
 
+  const [activeTab, setActiveTab] = useState('adventure');
+
   // Calculate power and bust threshold for display
   const power = calculatePower(activePlayer);
   const bustThreshold = getPlayerBustThreshold(activePlayer);
@@ -71,7 +73,6 @@ export default function App() {
     const hypotheticalPower = calculatePower(hypotheticalPlayer);
     const powerGain = hypotheticalPower - power;
     let teaser = `If mouse: power ${hypotheticalPower} (+${powerGain})`;
-    // Check for Redwall Provisions
     const provisions = champion.abilities?.find((a) => a.effect === 'addFoodPerMouse');
     if (provisions) {
       const placed = (abilityPlacements ?? {})[provisions.id] ?? [];
@@ -93,18 +94,37 @@ export default function App() {
   // During dusk, cards accept cube drops
   const cubeDrop = isDusk ? dropCube : undefined;
 
-  return (
-    <div style={styles.board}>
-      <StatusBar
-        day={day}
-        phase={phase}
-        conquest={conquest}
-        activePlayerIndex={activePlayerIndex}
-        playerCount={playerCount}
-        championName={activePlayer.champion.name}
-      />
+  // Count total vermin across locations for badge
+  const locationVermin = discoveredLocations.reduce((sum, loc) => {
+    const slots = cardSlots[loc.id] ?? [];
+    return sum + slots.filter((c) => c.type === 'vermin').length;
+  }, 0);
 
-      <div style={styles.middle}>
+  const tabs = [
+    {
+      id: 'adventure',
+      label: 'Adventure',
+      badge: adventureRow.length,
+      accentColor: 'var(--type-hero)',
+      content: (
+        <AdventureRow
+          cards={adventureRow}
+          deckSize={adventureDeck.length}
+          onCardClick={startRecruit}
+          onLocationClick={useLocationAction}
+          selectedId={action?.targetId}
+          canAct={canAct}
+          cardSlots={cardSlots}
+        />
+      ),
+    },
+    {
+      id: 'horde',
+      label: 'Horde',
+      badge: `${conquest}/10`,
+      badgeColor: conquest >= 7 ? 'var(--accent-red)' : 'var(--type-fortress)',
+      accentColor: 'var(--accent-red)',
+      content: (
         <HordeArea
           fortress={horde.fortress}
           fortressDeck={horde.fortressDeck}
@@ -116,15 +136,15 @@ export default function App() {
           onFortressClick={startFortressCombat}
           onVillainClick={startVillainCombat}
         />
-        <AdventureRow
-          cards={adventureRow}
-          deckSize={adventureDeck.length}
-          onCardClick={startRecruit}
-          onLocationClick={useLocationAction}
-          selectedId={action?.targetId}
-          canAct={canAct}
-          cardSlots={cardSlots}
-        />
+      ),
+    },
+    {
+      id: 'locations',
+      label: 'Locations',
+      badge: locationVermin > 0 ? `${locationVermin}V` : discoveredLocations.length,
+      badgeColor: locationVermin > 0 ? 'var(--accent-red)' : 'var(--type-location)',
+      accentColor: 'var(--type-location)',
+      content: (
         <DiscoveredLocations
           locations={discoveredLocations}
           onCardClick={useLocationAction}
@@ -132,7 +152,26 @@ export default function App() {
           cardSlots={cardSlots}
           onCubeDrop={cubeDrop}
         />
-      </div>
+      ),
+    },
+  ];
+
+  return (
+    <div style={styles.board}>
+      <StatusBar
+        day={day}
+        phase={phase}
+        conquest={conquest}
+        activePlayerIndex={activePlayerIndex}
+        playerCount={playerCount}
+        championName={activePlayer.champion.name}
+      />
+
+      <BoardTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       <div style={styles.playerArea}>
         <div style={styles.tableauWrap}>
