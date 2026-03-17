@@ -115,31 +115,68 @@ function calculatePower(player) {
   const band = player.band;
   let power = combatStrength(band);
 
+  // Champion ability bonuses
   const abilities = player.champion.abilities;
-  if (!abilities) return power;
-  const abilityPlacements = player.abilityPlacements ?? {};
+  if (abilities) {
+    const abilityPlacements = player.abilityPlacements ?? {};
+    for (const ability of abilities) {
+      const placed = abilityPlacements[ability.id] ?? [];
+      if (placed.length === 0) continue;
 
-  for (const ability of abilities) {
-    const placed = abilityPlacements[ability.id] ?? [];
-    if (placed.length === 0) continue;
-
-    switch (ability.effect) {
-      case 'amplifyMice': {
-        // Each mouse placed gives all drawn mice +1 power
-        const miceInBand = band.filter((c) => c === 'mouse').length;
-        power += miceInBand * placed.length;
-        break;
-      }
-      case 'allyPower': {
-        // For each critter placed, each mouse drawn = +1 power
-        const miceDrawn = band.filter((c) => c === 'mouse').length;
-        power += miceDrawn * placed.length;
-        break;
+      switch (ability.effect) {
+        case 'amplifyMice': {
+          const miceInBand = band.filter((c) => c === 'mouse').length;
+          power += miceInBand * placed.length;
+          break;
+        }
+        case 'allyPower': {
+          const miceDrawn = band.filter((c) => c === 'mouse').length;
+          power += miceDrawn * placed.length;
+          break;
+        }
       }
     }
   }
 
+  // Hero combat bonuses from tableau placements
+  const placements = player.placements ?? {};
+  for (const [cardId, placed] of Object.entries(placements)) {
+    if (placed.length === 0) continue;
+    const heroAbility = ABILITIES[cardId];
+    if (heroAbility?.combatBonus) {
+      power += heroAbility.combatBonus(placed);
+    }
+  }
+
   return power;
+}
+
+/** Get total vermin reduction from hero abilities (e.g. Guerrilla Scout). */
+function getVerminReduction(player) {
+  let reduction = 0;
+  const placements = player.placements ?? {};
+  for (const [cardId, placed] of Object.entries(placements)) {
+    if (placed.length === 0) continue;
+    const heroAbility = ABILITIES[cardId];
+    if (heroAbility?.combatVerminReduction) {
+      reduction += heroAbility.combatVerminReduction(placed);
+    }
+  }
+  return reduction;
+}
+
+/** Get food bonus from hero abilities on combat win (e.g. Mossflower Forager). */
+function getCombatWinFood(player) {
+  let food = 0;
+  const placements = player.placements ?? {};
+  for (const [cardId, placed] of Object.entries(placements)) {
+    if (placed.length === 0) continue;
+    const heroAbility = ABILITIES[cardId];
+    if (heroAbility?.onCombatWin) {
+      food += heroAbility.onCombatWin(placed);
+    }
+  }
+  return food;
 }
 
 /** Check if a cube type passes an ability's slot filter. */
@@ -497,14 +534,13 @@ export default function useGameState(playerCount = 2) {
       if (p.action || s.phase !== 'day') return s;
       const card = s.adventureRow.find((c) => c.id === cardId);
       if (!card || card.type !== 'hero') return s;
-      const valorCost = card.cost * 3;
       let result = patchActivePlayer(s, {
         action: { type: 'recruit', targetId: cardId },
         bustCount: 0,
         busted: false,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
-      result.message = `Recruiting ${card.name} (need ${valorCost} power) — draw cubes from your bag.`;
+      result.message = `Recruiting ${card.name} (cost: ${card.cost} food) — draw cubes from your bag.`;
       return result;
     });
   }, []);
@@ -647,10 +683,12 @@ export default function useGameState(playerCount = 2) {
         result = countAction(result);
         return result;
       } else if (isCombat) {
-        const needed = p.action.verminAdded;
-        const verm = countVermin(newBand);
+        const rawVerm = countVermin(newBand);
+        const reduction = getVerminReduction({ ...p, band: newBand });
+        const effectiveVerm = Math.max(0, rawVerm - reduction);
+        const reductionNote = reduction > 0 ? ` (${reduction} negated)` : '';
         const badWarning = newBustCount > 0 ? ` (${newBustCount}/${bustThreshold} bad)` : '';
-        message = `Drew "${drawn}" — Power ${power} vs ${verm} vermin.${badWarning}${triggerMsg}`;
+        message = `Drew "${drawn}" — Power ${power} vs ${effectiveVerm} vermin.${reductionNote}${badWarning}${triggerMsg}`;
       } else if (busted) {
         message = `BUST! Drew "${drawn}" — ${bustThreshold} bad cubes. Power was ${power}.${triggerMsg}`;
       } else {
@@ -674,22 +712,15 @@ export default function useGameState(playerCount = 2) {
       const target = s.adventureRow.find((c) => c.id === p.action.targetId);
       if (!target) return s;
 
-      const power = calculatePower(p);
-      const valorCost = target.cost * 3;
-
-      if (power < valorCost) {
-        return { ...s, message: `Not enough power! Need ${valorCost}, have ${power}. Keep drawing or cancel.` };
-      }
-
-      // Excess power removes inexperience from bag
-      const excess = power - valorCost;
-      const inexperienceToRemove = Math.floor(excess / 3);
-
-      // Still need food to pay the food cost
+      // Recruit gates on food only
       const foodCount = p.band.filter((c) => c === 'food').length;
       if (foodCount < target.cost) {
         return { ...s, message: `Need ${target.cost} food to recruit. Have ${foodCount}. Keep drawing or cancel.` };
       }
+
+      // Power gives inexperience removal: total power / 3
+      const power = calculatePower(p);
+      const inexperienceToRemove = Math.floor(power / 3);
 
       let foodToRemove = target.cost;
       const newBand = p.band.filter((c) => {
@@ -720,8 +751,8 @@ export default function useGameState(playerCount = 2) {
         busted: false,
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       });
-      const inexMsg = removed > 0 ? ` Excess power removed ${removed} inexperience!` : '';
-      result.message = `Recruited ${target.name}! Power ${power}/${valorCost}, spent ${target.cost} food.${inexMsg}`;
+      const inexMsg = removed > 0 ? ` Power ${power} removed ${removed} inexperience!` : '';
+      result.message = `Recruited ${target.name}! Spent ${target.cost} food.${inexMsg}`;
 
       result = countAction(result);
       return result;
@@ -739,7 +770,10 @@ export default function useGameState(playerCount = 2) {
       }
 
       const power = calculatePower(p);
-      const verm = countVermin(p.band);
+      const rawVerm = countVermin(p.band);
+      const reduction = getVerminReduction(p);
+      const verm = Math.max(0, rawVerm - reduction);
+      const reductionNote = reduction > 0 ? ` (${rawVerm} vermin - ${reduction} negated)` : '';
 
       const loc = s.discoveredLocations.find((c) => c.id === targetId)
         || s.adventureRow.find((c) => c.id === targetId);
@@ -753,7 +787,18 @@ export default function useGameState(playerCount = 2) {
         const newConquest = Math.max(0, s.conquest - conquestReduction);
         const overkillNote = overkill > 0 ? ` Overkill ${overkill} → conquest -${conquestReduction}` : ' Conquest -1';
 
-        result = { ...s, conquest: newConquest };
+        // Mossflower Forager: add food to location on win
+        const winFood = getCombatWinFood(p);
+        const newCardSlots = { ...s.cardSlots };
+        if (winFood > 0) {
+          const existing = newCardSlots[targetId] ?? [];
+          const foodSlots = [];
+          for (let i = 0; i < winFood; i++) foodSlots.push({ type: 'food' });
+          newCardSlots[targetId] = [...existing, ...foodSlots];
+        }
+        const foodNote = winFood > 0 ? ` Forager added ${winFood} food to ${locName}.` : '';
+
+        result = { ...s, conquest: newConquest, cardSlots: newCardSlots };
         result = patchActivePlayer(result, {
           band: newBand,
           action: null,
@@ -761,7 +806,7 @@ export default function useGameState(playerCount = 2) {
           busted: false,
           drawBonuses: { power: 0, bagAdds: [], messages: [] },
         });
-        result.message = `Victory at ${locName}! Power ${power} vs ${verm} vermin.${overkillNote} (now ${newConquest}).`;
+        result.message = `Victory at ${locName}! Power ${power} vs ${verm} vermin.${reductionNote}${overkillNote} (now ${newConquest}).${foodNote}`;
       } else {
         const newCardSlots = { ...s.cardSlots };
         const existing = newCardSlots[targetId] ?? [];
@@ -781,6 +826,101 @@ export default function useGameState(playerCount = 2) {
         });
         result.message = `Defeated at ${locName}. Power ${power} vs ${verm} vermin. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
       }
+
+      result = countAction(result);
+      return result;
+    });
+  }, []);
+
+  const forfeitCombat = useCallback(() => {
+    setState((s) => {
+      const p = getActivePlayer(s);
+      if (!p.action || p.action.type !== 'combat') return s;
+      const { targetId } = p.action;
+
+      // Same logic as combat loss: vermin return to location, conquest +1
+      const newCardSlots = { ...s.cardSlots };
+      const existing = newCardSlots[targetId] ?? [];
+      const verminToReturn = p.band.filter((c) => c === 'vermin').length;
+      const returnSlots = [];
+      for (let i = 0; i < verminToReturn; i++) returnSlots.push({ type: 'vermin' });
+      newCardSlots[targetId] = [...existing, ...returnSlots];
+      const newBand = p.band.filter((c) => c !== 'vermin');
+
+      const loc = s.discoveredLocations.find((c) => c.id === targetId)
+        || s.adventureRow.find((c) => c.id === targetId);
+      const locName = loc?.name ?? targetId;
+
+      let result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
+      result = patchActivePlayer(result, {
+        band: newBand,
+        action: null,
+        bustCount: 0,
+        busted: false,
+        drawBonuses: { power: 0, bagAdds: [], messages: [] },
+      });
+      result.message = `Forfeited combat at ${locName}. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
+
+      result = countAction(result);
+      return result;
+    });
+  }, []);
+
+  const useVeteranAbility = useCallback((targetLocationId) => {
+    setState((s) => {
+      const p = getActivePlayer(s);
+      if (p.action || s.phase !== 'day') return s;
+
+      const vetId = 'hero-salamandastron-veteran';
+      const vetAbility = ABILITIES[vetId];
+      if (!vetAbility?.canRemoveVermin) return s;
+
+      const placed = p.placements[vetId] ?? [];
+      if (vetAbility.canRemoveVermin(placed) < 1) {
+        return { ...s, message: 'Salamandastron Veteran: need 2 matching cubes placed.' };
+      }
+
+      // Find the target location and check it has vermin
+      const loc = s.discoveredLocations.find((c) => c.id === targetLocationId)
+        || s.adventureRow.find((c) => c.id === targetLocationId);
+      if (!loc) return { ...s, message: 'Invalid target location.' };
+
+      const slots = s.cardSlots[targetLocationId] ?? [];
+      const verminIdx = slots.findIndex((c) => c.type === 'vermin');
+      if (verminIdx === -1) {
+        return { ...s, message: `${loc.name} has no vermin to remove.` };
+      }
+
+      // Spend 2 matching cubes from the Veteran's placements
+      const counts = {};
+      for (const c of placed) {
+        counts[c.type] = (counts[c.type] ?? 0) + 1;
+      }
+      let spentType = null;
+      for (const [type, n] of Object.entries(counts)) {
+        if (n >= 2) { spentType = type; break; }
+      }
+      if (!spentType) {
+        return { ...s, message: 'Salamandastron Veteran: no matching pair to spend.' };
+      }
+
+      // Remove 2 of spentType from placements
+      let toRemove = 2;
+      const newPlaced = placed.filter((c) => {
+        if (c.type === spentType && toRemove > 0) { toRemove--; return false; }
+        return true;
+      });
+
+      // Remove 1 vermin from target location
+      const newSlots = [...slots];
+      newSlots.splice(verminIdx, 1);
+
+      const newCardSlots = { ...s.cardSlots, [targetLocationId]: newSlots };
+      const newPlacements = { ...p.placements, [vetId]: newPlaced };
+
+      let result = { ...s, cardSlots: newCardSlots };
+      result = patchActivePlayer(result, { placements: newPlacements });
+      result.message = `Salamandastron Veteran: spent 2 ${spentType} cubes, removed 1 vermin from ${loc.name}.`;
 
       result = countAction(result);
       return result;
@@ -975,6 +1115,8 @@ export default function useGameState(playerCount = 2) {
     drawCube,
     confirmRecruit,
     resolveCombat,
+    forfeitCombat,
+    useVeteranAbility,
     cancelAction,
     endDay,
     dropCube,

@@ -113,8 +113,8 @@ const styles = {
 
 export default function Band({
   cubes, action, busted, bagEmpty, message, power, bustThreshold, bustCount,
-  drawBonuses,
-  onDraw, onRecruit, onResolveCombat, onCancel,
+  drawBonuses, nextDrawTeaser,
+  onDraw, onRecruit, onResolveCombat, onForfeit, onCancel,
   canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight,
 }) {
   const inAction = !!action;
@@ -144,6 +144,13 @@ export default function Band({
             Bust: {bustCount ?? 0}/{bustThreshold ?? 3} bad cubes
           </div>
         </>
+      )}
+
+      {/* Next-draw teaser */}
+      {inAction && !busted && nextDrawTeaser && (
+        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px', fontStyle: 'italic' }}>
+          {nextDrawTeaser}
+        </div>
       )}
 
       {/* Trigger notifications */}
@@ -203,6 +210,14 @@ export default function Band({
               onClick={onResolveCombat}
             >
               Resolve Combat
+            </button>
+          )}
+          {isCombat && !busted && (
+            <button
+              style={{ ...styles.btn, ...styles.btnCancel }}
+              onClick={onForfeit}
+            >
+              Forfeit
             </button>
           )}
           {!isCombat && (

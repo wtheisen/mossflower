@@ -34,15 +34,13 @@ export const ABILITIES = {
     },
   },
 
-  // Redwall Infirmary: Remove up to 2 wounds, return cubes to bag
+  // Redwall Infirmary: Remove ALL wounds from band
   'redwall-infirmary': {
     onAction(ctx) {
       let removed = 0;
-      for (let i = 0; i < 2; i++) {
-        if (ctx.removeFromBand('wound')) removed++;
-      }
+      while (ctx.removeFromBand('wound')) removed++;
       if (removed > 0) {
-        ctx.setMessage(`Redwall Infirmary: Removed ${removed} wound(s) and returned them to your bag.`);
+        ctx.setMessage(`Redwall Infirmary: Removed ${removed} wound(s). Vermin spread incoming...`);
       } else {
         ctx.setMessage('Redwall Infirmary: No wounds to remove.');
       }
@@ -81,6 +79,46 @@ export const ABILITIES = {
   'loc-salamandastron': {
     onAction(ctx) {
       ctx.setMessage('Salamandastron: Combat modifier — no action to take right now.');
+    },
+  },
+
+  // ── Hero Abilities ────────────────────────────────────────
+
+  // Redwall Sentry: each mouse placed here gives +1 combat strength
+  'hero-redwall-sentry': {
+    combatBonus(placements) {
+      return placements.filter((c) => c.type === 'mouse').length;
+    },
+  },
+
+  // Guerrilla Scout: each squirrel placed here negates 1 vermin in combat
+  'hero-guerilla-scout': {
+    combatVerminReduction(placements) {
+      return placements.filter((c) => c.type === 'squirrel').length;
+    },
+  },
+
+  // Salamandastron Veteran: spend 2 matching cubes to remove 1 vermin anywhere
+  // Returns pairs of matching cubes available to spend
+  'hero-salamandastron-veteran': {
+    canRemoveVermin(placements) {
+      const counts = {};
+      for (const c of placements) {
+        counts[c.type] = (counts[c.type] ?? 0) + 1;
+      }
+      // Number of pairs available
+      let pairs = 0;
+      for (const n of Object.values(counts)) {
+        pairs += Math.floor(n / 2);
+      }
+      return pairs;
+    },
+  },
+
+  // Mossflower Forager: on combat win, add 1 food per squirrel placed here
+  'hero-squirrel-1': {
+    onCombatWin(placements) {
+      return placements.filter((c) => c.type === 'squirrel').length;
     },
   },
 };

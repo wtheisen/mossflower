@@ -32,10 +32,16 @@ const styles = {
   },
 };
 
-export default function StatusBar({ day = 1, phase = 'Day', conquest = 0 }) {
+export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, activePlayerIndex = 0, playerCount = 1, championName }) {
   return (
     <div style={styles.bar}>
       <span style={styles.title}>Mossflower</span>
+      {playerCount > 1 && (
+        <div style={styles.stat}>
+          <span style={styles.label}>Player</span>
+          <span style={styles.value}>{activePlayerIndex + 1}{championName ? ` — ${championName}` : ''}</span>
+        </div>
+      )}
       <div style={styles.stat}>
         <span style={styles.label}>Day</span>
         <span style={styles.value}>{day}</span>

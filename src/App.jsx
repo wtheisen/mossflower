@@ -43,7 +43,7 @@ const styles = {
 export default function App() {
   const {
     state, startRecruit, useLocationAction,
-    drawCube, confirmRecruit, resolveCombat, cancelAction,
+    drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
     endDay, dropCube, returnCubeToBag, endNight,
     calculatePower, getPlayerBustThreshold,
   } = useGameState(2);
@@ -60,6 +60,25 @@ export default function App() {
   // Calculate power and bust threshold for display
   const power = calculatePower(activePlayer);
   const bustThreshold = getPlayerBustThreshold(activePlayer);
+
+  // Next-draw teaser: what happens if the next cube is a mouse?
+  let nextDrawTeaser = null;
+  if (action && band.length > 0 && !busted && bag.length > 0) {
+    const hypotheticalBand = [...band, 'mouse'];
+    const hypotheticalPlayer = { ...activePlayer, band: hypotheticalBand };
+    const hypotheticalPower = calculatePower(hypotheticalPlayer);
+    const powerGain = hypotheticalPower - power;
+    let teaser = `If mouse: power ${hypotheticalPower} (+${powerGain})`;
+    // Check for Redwall Provisions
+    const provisions = champion.abilities?.find((a) => a.effect === 'addFoodPerMouse');
+    if (provisions) {
+      const placed = (abilityPlacements ?? {})[provisions.id] ?? [];
+      if (placed.length > 0) {
+        teaser += ` and +${placed.length} food to bag`;
+      }
+    }
+    nextDrawTeaser = teaser;
+  }
 
   // Find the target card for the action overlay
   const targetCard = action
@@ -128,9 +147,11 @@ export default function App() {
             bustThreshold={bustThreshold}
             bustCount={bustCount ?? 0}
             drawBonuses={drawBonuses}
+            nextDrawTeaser={nextDrawTeaser}
             onDraw={drawCube}
             onRecruit={confirmRecruit}
             onResolveCombat={resolveCombat}
+            onForfeit={forfeitCombat}
             onCancel={cancelAction}
             canEndDay={phase === 'day' && !action}
             onEndDay={endDay}

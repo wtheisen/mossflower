@@ -160,9 +160,14 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
 
         {/* Cost (hero only) */}
         {card.cost != null && (
-          <div style={styles.costRow}>
-            Cost: <span style={styles.costValue}>{card.cost}</span>
-          </div>
+          <>
+            <div style={styles.costRow}>
+              Cost: <span style={styles.costValue}>{card.cost}</span> food
+            </div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Excess power removes inexperience
+            </div>
+          </>
         )}
 
         {/* Ability / Action text */}
