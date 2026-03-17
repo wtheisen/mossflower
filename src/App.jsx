@@ -6,6 +6,7 @@ import Band from './components/Band';
 import HordeArea from './components/HordeArea';
 import DiscoveredLocations from './components/DiscoveredLocations';
 import ActionOverlay from './components/ActionOverlay';
+import GameOverOverlay from './components/GameOverOverlay';
 import useGameState from './hooks/useGameState';
 
 const styles = {
@@ -45,11 +46,12 @@ export default function App() {
     state, startRecruit, useLocationAction,
     drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
     endDay, dropCube, returnCubeToBag, endNight,
+    startFortressCombat, startVillainCombat, restartGame,
     calculatePower, getPlayerBustThreshold,
   } = useGameState(2);
 
   const { phase, day, conquest, adventureRow, adventureDeck, discoveredLocations, horde,
-    players, activePlayerIndex, playerCount, cardSlots, message } = state;
+    players, activePlayerIndex, playerCount, cardSlots, message, gameResult } = state;
   const activePlayer = players[activePlayerIndex];
   const { champion, tableau, placements, abilityPlacements, bag, band, action, busted, bustCount, nightReturns, drawBonuses } = activePlayer;
 
@@ -82,7 +84,10 @@ export default function App() {
 
   // Find the target card for the action overlay
   const targetCard = action
-    ? [...adventureRow, ...discoveredLocations].find((c) => c.id === action.targetId)
+    ? [...adventureRow, ...discoveredLocations,
+       ...(horde.fortress ? [horde.fortress] : []),
+       ...(horde.villain ? [horde.villain] : []),
+      ].find((c) => c.id === action.targetId)
     : null;
 
   // During dusk, cards accept cube drops
@@ -102,9 +107,14 @@ export default function App() {
       <div style={styles.middle}>
         <HordeArea
           fortress={horde.fortress}
-          fortressDeckSize={horde.fortressDeckSize}
+          fortressDeck={horde.fortressDeck}
+          fortressCleared={horde.fortressCleared}
           villain={horde.villain}
           conquest={conquest}
+          canAct={canAct}
+          cardSlots={cardSlots}
+          onFortressClick={startFortressCombat}
+          onVillainClick={startVillainCombat}
         />
         <AdventureRow
           cards={adventureRow}
@@ -182,6 +192,13 @@ export default function App() {
           onCancel={cancelAction}
         />
       )}
+
+      <GameOverOverlay
+        gameResult={gameResult}
+        day={day}
+        conquest={conquest}
+        onRestart={restartGame}
+      />
     </div>
   );
 }

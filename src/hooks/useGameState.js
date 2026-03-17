@@ -218,6 +218,29 @@ function buildInitialState(playerCount) {
   for (let i = 0; i < playerCount; i++) {
     players.push(createPlayer(i));
   }
+  const horde = {
+    fortress: DEMO_HORDE.fortress,
+    fortressDeck: [...DEMO_HORDE.fortressDeck],
+    fortressCleared: false,
+    villain: DEMO_HORDE.villain,
+  };
+  const cardSlots = initCardSlots(DEMO_ADVENTURE_ROW);
+
+  // Initialize fortress vermin
+  if (horde.fortress) {
+    cardSlots[horde.fortress.id] = Array.from(
+      { length: horde.fortress.startingVermin },
+      () => ({ type: 'vermin' }),
+    );
+  }
+  // Initialize villain vermin
+  if (horde.villain) {
+    cardSlots[horde.villain.id] = Array.from(
+      { length: horde.villain.startingVermin },
+      () => ({ type: 'vermin' }),
+    );
+  }
+
   return {
     phase: 'day',
     day: 1,
@@ -225,16 +248,26 @@ function buildInitialState(playerCount) {
     playerCount,
     activePlayerIndex: 0,
     players,
+    gameResult: null,
 
     // Shared board
     adventureRow: [...DEMO_ADVENTURE_ROW],
     discoveredLocations: [...DEMO_DISCOVERED],
-    horde: { ...DEMO_HORDE },
+    horde,
     adventureDeck: shuffleArray([...DEMO_ADVENTURE_DECK]),
-    cardSlots: initCardSlots(DEMO_ADVENTURE_ROW),
+    cardSlots,
 
     message: null,
   };
+}
+
+/** Check if conquest >= 10 → loss. */
+function checkGameOver(s) {
+  if (s.gameResult) return s;
+  if (s.conquest >= 10) {
+    return { ...s, gameResult: 'loss', message: 'Conquest reached 10 — Mossflower has fallen.' };
+  }
+  return s;
 }
 
 function getActivePlayer(s) {
@@ -412,7 +445,7 @@ function enterNightAllPlayers(s) {
   const players = result.players.map((p) => ({ ...p, nightReturns: 0 }));
   result.players = players;
 
-  return result;
+  return checkGameOver(result);
 }
 
 /** Morning resolution: card rotation, reveal, reset all players for new day. */
@@ -458,7 +491,7 @@ function resolveNightEnd(s) {
     passed: false,
   }));
 
-  return {
+  return checkGameOver({
     ...s,
     phase: 'day',
     day: s.day + 1,
@@ -469,7 +502,7 @@ function resolveNightEnd(s) {
     cardSlots: newCardSlots,
     conquest: newConquest,
     message: `Day ${s.day + 1} begins. ${morning}`,
-  };
+  });
 }
 
 /** After completing an action, increment actionsUsed and auto-pass if >= 2. */
@@ -530,6 +563,7 @@ export default function useGameState(playerCount = 2) {
 
   const startRecruit = useCallback((cardId) => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (p.action || s.phase !== 'day') return s;
       const card = s.adventureRow.find((c) => c.id === cardId);
@@ -547,6 +581,7 @@ export default function useGameState(playerCount = 2) {
 
   const useLocationAction = useCallback((cardId) => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (p.action || s.phase !== 'day') return s;
       const loc = s.discoveredLocations.find((c) => c.id === cardId)
@@ -606,6 +641,8 @@ export default function useGameState(playerCount = 2) {
           conquest: result.conquest + spread.conquestDelta,
           message: `${result.message} Vermin spread (${result.conquest}): ${spread.log.join('; ')}.${spread.conquestDelta > 0 ? ' Overflow → conquest +1.' : ''}`,
         };
+        result = checkGameOver(result);
+        if (result.gameResult) return result;
       }
 
       // Location action completes immediately — count it
@@ -617,6 +654,7 @@ export default function useGameState(playerCount = 2) {
 
   const drawCube = useCallback(() => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (!p.action || p.busted) return s;
       if (p.bag.length === 0) return { ...s, message: 'Bag is empty!' };
@@ -656,7 +694,7 @@ export default function useGameState(playerCount = 2) {
       let message;
       if (isCombat && busted) {
         // Combat bust — auto-resolve as a loss
-        const { targetId } = p.action;
+        const { targetId, combatTarget } = p.action;
         const newCardSlots = { ...s.cardSlots };
         const existing = newCardSlots[targetId] ?? [];
         const verminToReturn = newBand.filter((c) => c === 'vermin').length;
@@ -666,7 +704,9 @@ export default function useGameState(playerCount = 2) {
         const bandAfter = newBand.filter((c) => c !== 'vermin');
 
         const loc = s.discoveredLocations.find((c) => c.id === targetId)
-          || s.adventureRow.find((c) => c.id === targetId);
+          || s.adventureRow.find((c) => c.id === targetId)
+          || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
+          || (s.horde.villain?.id === targetId ? s.horde.villain : null);
         const locName = loc?.name ?? targetId;
 
         let result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
@@ -680,7 +720,8 @@ export default function useGameState(playerCount = 2) {
         });
         result.message = `BUST at ${locName}! Drew "${drawn}" — ${bustThreshold} bad cubes. Vermin return, conquest +1 (now ${s.conquest + 1}).${triggerMsg}`;
 
-        result = countAction(result);
+        result = checkGameOver(result);
+        if (!result.gameResult) result = countAction(result);
         return result;
       } else if (isCombat) {
         const rawVerm = countVermin(newBand);
@@ -707,6 +748,7 @@ export default function useGameState(playerCount = 2) {
 
   const confirmRecruit = useCallback(() => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (!p.action || p.action.type !== 'recruit' || p.busted) return s;
       const target = s.adventureRow.find((c) => c.id === p.action.targetId);
@@ -761,9 +803,10 @@ export default function useGameState(playerCount = 2) {
 
   const resolveCombat = useCallback(() => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (!p.action || p.action.type !== 'combat') return s;
-      const { targetId, verminAdded } = p.action;
+      const { targetId, verminAdded, combatTarget } = p.action;
 
       if (p.band.length < verminAdded) {
         return { ...s, message: `Must draw at least ${verminAdded} cubes. Drawn ${p.band.length} so far.` };
@@ -776,18 +819,70 @@ export default function useGameState(playerCount = 2) {
       const reductionNote = reduction > 0 ? ` (${rawVerm} vermin - ${reduction} negated)` : '';
 
       const loc = s.discoveredLocations.find((c) => c.id === targetId)
-        || s.adventureRow.find((c) => c.id === targetId);
+        || s.adventureRow.find((c) => c.id === targetId)
+        || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
+        || (s.horde.villain?.id === targetId ? s.horde.villain : null);
       const locName = loc?.name ?? targetId;
+
+      const clearAction = {
+        action: null, bustCount: 0, busted: false,
+        drawBonuses: { power: 0, bagAdds: [], messages: [] },
+      };
 
       let result;
       if (power >= verm) {
         const newBand = p.band.filter((c) => c !== 'vermin');
+
+        if (combatTarget === 'villain') {
+          // Villain defeated → win!
+          const overkill = power - verm;
+          const conquestReduction = Math.max(1, overkill);
+          const newConquest = Math.max(0, s.conquest - conquestReduction);
+          result = { ...s, conquest: newConquest };
+          result = patchActivePlayer(result, { band: newBand, ...clearAction });
+          result.gameResult = 'win';
+          result.message = `Victory! ${locName} is defeated! Mossflower is saved!`;
+          return result;
+        }
+
+        if (combatTarget === 'fortress') {
+          // Fortress defeated → pop next or mark cleared
+          const overkill = power - verm;
+          const conquestReduction = Math.max(1, overkill);
+          const newConquest = Math.max(0, s.conquest - conquestReduction);
+          const newHorde = { ...s.horde };
+          const newCardSlots = { ...s.cardSlots };
+          delete newCardSlots[targetId];
+          const newDeck = [...newHorde.fortressDeck];
+          if (newDeck.length > 0) {
+            const next = newDeck.pop();
+            newHorde.fortress = next;
+            newHorde.fortressDeck = newDeck;
+            newCardSlots[next.id] = Array.from(
+              { length: next.startingVermin },
+              () => ({ type: 'vermin' }),
+            );
+            result = { ...s, conquest: newConquest, horde: newHorde, cardSlots: newCardSlots };
+            result = patchActivePlayer(result, { band: newBand, ...clearAction });
+            result.message = `Fortress ${locName} cleared! Power ${power} vs ${verm} vermin. Conquest -${conquestReduction} (now ${newConquest}). Next fortress: ${next.name}.`;
+          } else {
+            newHorde.fortress = null;
+            newHorde.fortressDeck = [];
+            newHorde.fortressCleared = true;
+            result = { ...s, conquest: newConquest, horde: newHorde, cardSlots: newCardSlots };
+            result = patchActivePlayer(result, { band: newBand, ...clearAction });
+            result.message = `Fortress ${locName} cleared! All fortresses destroyed! The villain is now vulnerable. Conquest -${conquestReduction} (now ${newConquest}).`;
+          }
+          result = countAction(result);
+          return result;
+        }
+
+        // Normal location combat win
         const overkill = power - verm;
         const conquestReduction = Math.max(1, overkill);
         const newConquest = Math.max(0, s.conquest - conquestReduction);
         const overkillNote = overkill > 0 ? ` Overkill ${overkill} → conquest -${conquestReduction}` : ' Conquest -1';
 
-        // Mossflower Forager: add food to location on win
         const winFood = getCombatWinFood(p);
         const newCardSlots = { ...s.cardSlots };
         if (winFood > 0) {
@@ -799,15 +894,10 @@ export default function useGameState(playerCount = 2) {
         const foodNote = winFood > 0 ? ` Forager added ${winFood} food to ${locName}.` : '';
 
         result = { ...s, conquest: newConquest, cardSlots: newCardSlots };
-        result = patchActivePlayer(result, {
-          band: newBand,
-          action: null,
-          bustCount: 0,
-          busted: false,
-          drawBonuses: { power: 0, bagAdds: [], messages: [] },
-        });
+        result = patchActivePlayer(result, { band: newBand, ...clearAction });
         result.message = `Victory at ${locName}! Power ${power} vs ${verm} vermin.${reductionNote}${overkillNote} (now ${newConquest}).${foodNote}`;
       } else {
+        // Combat loss
         const newCardSlots = { ...s.cardSlots };
         const existing = newCardSlots[targetId] ?? [];
         const verminToReturn = p.band.filter((c) => c === 'vermin').length;
@@ -817,14 +907,11 @@ export default function useGameState(playerCount = 2) {
         const newBand = p.band.filter((c) => c !== 'vermin');
 
         result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
-        result = patchActivePlayer(result, {
-          band: newBand,
-          action: null,
-          bustCount: 0,
-          busted: false,
-          drawBonuses: { power: 0, bagAdds: [], messages: [] },
-        });
+        result = patchActivePlayer(result, { band: newBand, ...clearAction });
         result.message = `Defeated at ${locName}. Power ${power} vs ${verm} vermin. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
+
+        result = checkGameOver(result);
+        if (result.gameResult) return result;
       }
 
       result = countAction(result);
@@ -834,11 +921,12 @@ export default function useGameState(playerCount = 2) {
 
   const forfeitCombat = useCallback(() => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (!p.action || p.action.type !== 'combat') return s;
       const { targetId } = p.action;
 
-      // Same logic as combat loss: vermin return to location, conquest +1
+      // Same logic as combat loss: vermin return to card, conquest +1
       const newCardSlots = { ...s.cardSlots };
       const existing = newCardSlots[targetId] ?? [];
       const verminToReturn = p.band.filter((c) => c === 'vermin').length;
@@ -848,7 +936,9 @@ export default function useGameState(playerCount = 2) {
       const newBand = p.band.filter((c) => c !== 'vermin');
 
       const loc = s.discoveredLocations.find((c) => c.id === targetId)
-        || s.adventureRow.find((c) => c.id === targetId);
+        || s.adventureRow.find((c) => c.id === targetId)
+        || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
+        || (s.horde.villain?.id === targetId ? s.horde.villain : null);
       const locName = loc?.name ?? targetId;
 
       let result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
@@ -861,7 +951,8 @@ export default function useGameState(playerCount = 2) {
       });
       result.message = `Forfeited combat at ${locName}. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
 
-      result = countAction(result);
+      result = checkGameOver(result);
+      if (!result.gameResult) result = countAction(result);
       return result;
     });
   }, []);
@@ -951,6 +1042,7 @@ export default function useGameState(playerCount = 2) {
 
   const endDay = useCallback(() => {
     setState((s) => {
+      if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (s.phase !== 'day' || p.action) return s;
 
@@ -1108,6 +1200,76 @@ export default function useGameState(playerCount = 2) {
     });
   }, []);
 
+  const startFortressCombat = useCallback((fortressId) => {
+    setState((s) => {
+      if (s.gameResult) return s;
+      const p = getActivePlayer(s);
+      if (p.action || s.phase !== 'day') return s;
+      const fortress = s.horde.fortress;
+      if (!fortress || fortress.id !== fortressId) return s;
+
+      // Move vermin from fortress cardSlots → player's bag
+      const slots = s.cardSlots[fortressId] ?? [];
+      const verminCount = slots.filter((c) => c.type === 'vermin').length;
+      if (verminCount === 0) return { ...s, message: `${fortress.name} has no vermin — already cleared!` };
+
+      const newCardSlots = {
+        ...s.cardSlots,
+        [fortressId]: slots.filter((c) => c.type !== 'vermin'),
+      };
+      const newBag = [...p.bag];
+      for (let i = 0; i < verminCount; i++) newBag.push('vermin');
+
+      let result = { ...s, cardSlots: newCardSlots };
+      result = patchActivePlayer(result, {
+        bag: shuffleArray(newBag),
+        action: { type: 'combat', targetId: fortressId, verminAdded: verminCount, combatTarget: 'fortress' },
+        bustCount: 0,
+        busted: false,
+        drawBonuses: { power: 0, bagAdds: [], messages: [] },
+      });
+      result.message = `Attacking ${fortress.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
+      return result;
+    });
+  }, []);
+
+  const startVillainCombat = useCallback((villainId) => {
+    setState((s) => {
+      if (s.gameResult) return s;
+      const p = getActivePlayer(s);
+      if (p.action || s.phase !== 'day') return s;
+      if (!s.horde.fortressCleared) return { ...s, message: 'The fortress must be cleared before engaging the villain!' };
+      const villain = s.horde.villain;
+      if (!villain || villain.id !== villainId) return s;
+
+      const slots = s.cardSlots[villainId] ?? [];
+      const verminCount = slots.filter((c) => c.type === 'vermin').length;
+      if (verminCount === 0) return { ...s, message: `${villain.name} has no vermin!` };
+
+      const newCardSlots = {
+        ...s.cardSlots,
+        [villainId]: slots.filter((c) => c.type !== 'vermin'),
+      };
+      const newBag = [...p.bag];
+      for (let i = 0; i < verminCount; i++) newBag.push('vermin');
+
+      let result = { ...s, cardSlots: newCardSlots };
+      result = patchActivePlayer(result, {
+        bag: shuffleArray(newBag),
+        action: { type: 'combat', targetId: villainId, verminAdded: verminCount, combatTarget: 'villain' },
+        bustCount: 0,
+        busted: false,
+        drawBonuses: { power: 0, bagAdds: [], messages: [] },
+      });
+      result.message = `Final battle with ${villain.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
+      return result;
+    });
+  }, []);
+
+  const restartGame = useCallback(() => {
+    setState(buildInitialState(playerCount));
+  }, [playerCount]);
+
   return {
     state,
     startRecruit,
@@ -1122,6 +1284,9 @@ export default function useGameState(playerCount = 2) {
     dropCube,
     returnCubeToBag,
     endNight,
+    startFortressCombat,
+    startVillainCombat,
+    restartGame,
     calculatePower: (player) => calculatePower(player),
     getPlayerBustThreshold: (player) => getPlayerBustThreshold(player),
   };

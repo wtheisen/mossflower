@@ -20,6 +20,65 @@ const styles = {
     gap: '12px',
     alignItems: 'flex-start',
   },
+  cardWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  clickable: {
+    cursor: 'pointer',
+    transition: 'transform 0.1s',
+  },
+  locked: {
+    opacity: 0.6,
+    position: 'relative',
+  },
+  lockedBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    background: 'rgba(60, 45, 30, 0.85)',
+    color: '#fff',
+    padding: '4px 12px',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: 700,
+    fontFamily: 'var(--font-display)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    whiteSpace: 'nowrap',
+    zIndex: 2,
+  },
+  clearedPlaceholder: {
+    width: 'var(--card-width)',
+    minHeight: 'var(--card-height)',
+    background: 'linear-gradient(170deg, var(--bg-elevated) 0%, rgba(139, 104, 66, 0.08) 100%)',
+    border: '2px dashed var(--border-subtle)',
+    borderRadius: 'var(--radius)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: 'var(--text-muted)',
+    fontFamily: 'var(--font-display)',
+    fontStyle: 'italic',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+  verminSlots: {
+    padding: '4px 0',
+  },
+  verminLabel: {
+    fontSize: '9px',
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    marginBottom: '3px',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
+  },
   deck: {
     width: 'var(--card-width)',
     minHeight: 'var(--card-height)',
@@ -115,22 +174,73 @@ const styles = {
   },
 };
 
-export default function HordeArea({ fortress, fortressDeckSize, villain, conquest = 0 }) {
+export default function HordeArea({
+  fortress, fortressDeck = [], fortressCleared, villain,
+  conquest = 0, canAct, cardSlots = {},
+  onFortressClick, onVillainClick,
+}) {
   const filled = Array.from({ length: conquest }, () => ({ type: 'vermin' }));
+  const fortressVermin = fortress ? (cardSlots[fortress.id] ?? []) : [];
+  const villainVermin = villain ? (cardSlots[villain.id] ?? []) : [];
+  const villainLocked = !fortressCleared;
 
   return (
     <div style={styles.section}>
       <div style={styles.label}>The Horde</div>
       <div style={styles.row}>
-        <Card card={fortress} />
-        {fortressDeckSize > 0 && (
+        {/* Fortress */}
+        <div style={styles.cardWrapper}>
+          {fortress ? (
+            <div
+              style={canAct ? styles.clickable : undefined}
+              onClick={canAct && onFortressClick ? () => onFortressClick(fortress.id) : undefined}
+            >
+              <Card card={fortress} />
+            </div>
+          ) : (
+            <div style={styles.clearedPlaceholder}>Cleared</div>
+          )}
+          {fortress && fortressVermin.length > 0 && (
+            <div style={styles.verminSlots}>
+              <div style={styles.verminLabel}>Vermin ({fortressVermin.length}/{fortress.slots})</div>
+              <CubeSlots total={fortress.slots} filled={fortressVermin} />
+            </div>
+          )}
+        </div>
+
+        {/* Fortress deck */}
+        {fortressDeck.length > 0 && (
           <div style={styles.deck}>
             <div style={styles.deckLabel}>Fortress</div>
-            <div style={styles.deckCount}>{fortressDeckSize}</div>
+            <div style={styles.deckCount}>{fortressDeck.length}</div>
             <div style={styles.deckSub}>remaining</div>
           </div>
         )}
-        <Card card={villain} />
+
+        {/* Villain */}
+        <div style={styles.cardWrapper}>
+          <div
+            style={{
+              ...(villainLocked ? styles.locked : {}),
+              ...(canAct && !villainLocked ? styles.clickable : {}),
+              position: 'relative',
+            }}
+            onClick={canAct && !villainLocked && onVillainClick ? () => onVillainClick(villain.id) : undefined}
+          >
+            <Card card={villain} />
+            {villainLocked && (
+              <div style={styles.lockedBadge}>Locked</div>
+            )}
+          </div>
+          {villain && villainVermin.length > 0 && (
+            <div style={styles.verminSlots}>
+              <div style={styles.verminLabel}>Vermin ({villainVermin.length}/{villain.slots})</div>
+              <CubeSlots total={villain.slots} filled={villainVermin} />
+            </div>
+          )}
+        </div>
+
+        {/* Conquest track */}
         <div style={styles.track}>
           <div style={styles.trackHeader}>
             <span style={styles.trackBadge}>Conquest</span>

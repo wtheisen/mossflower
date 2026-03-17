@@ -270,7 +270,8 @@ export const DEMO_DISCOVERED = [...BASE_LOCATIONS];
 
 export const DEMO_HORDE = {
   fortress: FORTRESS[0],  // Cluny Siege Engine (revealed)
-  fortressDeckSize: 1,     // 1 more fortress card in the deck
+  fortressDeck: [FORTRESS[1]],  // remaining fortress cards
+  fortressCleared: false,
   villain: VILLAINS[1],    // Cluny the Scourge
 };
 
