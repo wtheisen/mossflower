@@ -23,22 +23,8 @@ const styles = {
     borderTop: '2px solid var(--border-card)',
     background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
     padding: '12px 24px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    alignItems: 'center',
     flexShrink: 0,
     overflowX: 'auto',
-  },
-  tableauWrap: {
-    width: '100%',
-    minWidth: 0,
-  },
-  bandBagRow: {
-    display: 'flex',
-    gap: '16px',
-    justifyContent: 'center',
-    width: '100%',
   },
 };
 
@@ -175,42 +161,40 @@ export default function App() {
       />
 
       <div style={styles.playerArea}>
-        <div style={styles.tableauWrap}>
-          <PlayerTableau
-            champion={champion}
-            tableau={tableau}
-            placements={placements}
-            abilityPlacements={abilityPlacements ?? {}}
-            onCubeDrop={cubeDrop}
-            onReturnCube={isNight && nightReturns < 2 ? returnCubeToBag : undefined}
-          />
-        </div>
-        <div style={styles.bandBagRow}>
-          <Band
-            cubes={band}
-            action={action}
-            busted={busted}
-            bagEmpty={bag.length === 0}
-            message={message}
-            power={power}
-            bustThreshold={bustThreshold}
-            bustCount={bustCount ?? 0}
-            drawBonuses={drawBonuses}
-            nextDrawTeaser={nextDrawTeaser}
-            onDraw={drawCube}
-            onRecruit={confirmRecruit}
-            onResolveCombat={resolveCombat}
-            onForfeit={forfeitCombat}
-            onCancel={cancelAction}
-            canEndDay={phase === 'day' && !action}
-            onEndDay={endDay}
-            isDusk={isDusk}
-            isNight={isNight}
-            nightReturns={nightReturns}
-            onEndNight={endNight}
-          />
-          <Bag cubes={bag} />
-        </div>
+        <PlayerTableau
+          champion={champion}
+          tableau={tableau}
+          placements={placements}
+          abilityPlacements={abilityPlacements ?? {}}
+          onCubeDrop={cubeDrop}
+          onReturnCube={isNight && nightReturns < 2 ? returnCubeToBag : undefined}
+          bandSlot={
+            <Band
+              cubes={band}
+              action={action}
+              busted={busted}
+              bagEmpty={bag.length === 0}
+              message={message}
+              power={power}
+              bustThreshold={bustThreshold}
+              bustCount={bustCount ?? 0}
+              drawBonuses={drawBonuses}
+              nextDrawTeaser={nextDrawTeaser}
+              onDraw={drawCube}
+              onRecruit={confirmRecruit}
+              onResolveCombat={resolveCombat}
+              onForfeit={forfeitCombat}
+              onCancel={cancelAction}
+              canEndDay={phase === 'day' && !action}
+              onEndDay={endDay}
+              isDusk={isDusk}
+              isNight={isNight}
+              nightReturns={nightReturns}
+              onEndNight={endNight}
+            />
+          }
+          bagSlot={<Bag cubes={bag} />}
+        />
       </div>
 
       {action && targetCard && (

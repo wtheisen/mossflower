@@ -23,7 +23,20 @@ const styles = {
     overflowX: 'auto',
     paddingBottom: '4px',
     alignItems: 'flex-start',
+  },
+  heroGroup: {
+    display: 'flex',
+    gap: '12px',
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  rightGroup: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'flex-start',
+    flexShrink: 0,
+    marginLeft: 'auto',
   },
   championArea: {
     display: 'flex',
@@ -31,16 +44,14 @@ const styles = {
     gap: '8px',
     flexShrink: 0,
   },
-  /* ── Champion card wrapper (matches Card component styling) ── */
+  /* ── Champion card wrapper — horizontal layout ── */
   championCard: {
-    width: 'calc(var(--card-width) * 2 + 12px)',
     background: 'linear-gradient(170deg, var(--bg-card) 0%, rgba(184, 134, 11, 0.08) 100%)',
     border: '2px solid var(--type-champion)',
     borderRadius: 'var(--radius)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    position: 'relative',
     flexShrink: 0,
     boxShadow: '0 2px 8px rgba(100, 80, 50, 0.12), inset 0 1px 0 rgba(255,255,255,0.5)',
     animation: 'fadeInPage 0.4s ease-out both',
@@ -64,9 +75,21 @@ const styles = {
     flex: 1,
     textShadow: '0 1px 3px rgba(0,0,0,0.4)',
   },
+  championBody: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+  },
+  championLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: 'var(--card-width)',
+    flexShrink: 0,
+    borderRight: '1px solid var(--border-subtle)',
+  },
   championArtBox: {
-    margin: '0 5px',
-    height: '60px',
+    margin: '5px',
+    flex: 1,
     borderRadius: '4px',
     border: '1.5px solid rgba(0,0,0,0.15)',
     position: 'relative',
@@ -83,7 +106,7 @@ const styles = {
     pointerEvents: 'none',
   },
   championArtIcon: {
-    fontSize: '28px',
+    fontSize: '36px',
     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
     position: 'relative',
     zIndex: 1,
@@ -94,7 +117,7 @@ const styles = {
     alignItems: 'center',
     gap: '5px',
     padding: '4px 8px',
-    margin: '4px 5px 0',
+    margin: '0 5px 5px',
     borderRadius: '3px',
     background: 'var(--bg-elevated)',
     borderTop: '1px solid var(--border-subtle)',
@@ -110,7 +133,9 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: '6px',
-    padding: '6px 5px 6px',
+    padding: '6px',
+    flex: 1,
+    alignContent: 'start',
   },
   abilityZone: {
     background: 'linear-gradient(170deg, var(--bg-card) 0%, rgba(184, 134, 11, 0.04) 100%)',
@@ -165,7 +190,7 @@ function filterLabel(slotFilter) {
  * Renders the current player's champion + recruited hero cards.
  * Champions with abilities show ability zones as drop targets.
  */
-export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube }) {
+export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot }) {
   const hasAbilities = champion.abilities && champion.abilities.length > 0;
 
   const handleAbilityDragOver = (e) => {
@@ -194,7 +219,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
           {hasAbilities ? (
             /* Champion with abilities: render as a large card with embedded ability zones */
             <div style={styles.championCard}>
-              {/* Title Bar */}
+              {/* Title Bar — spans full width */}
               <div style={styles.championTitleBar}>
                 <span style={styles.championName}>{champion.name}</span>
                 {(champion.affinities ?? (champion.affinity ? [champion.affinity] : [])).length > 0 && (
@@ -205,41 +230,43 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                   </div>
                 )}
               </div>
-              {/* Art Box */}
-              <div style={styles.championArtBox}>
-                <div style={styles.championArtOverlay} />
-                <span style={styles.championArtIcon}>⚔</span>
-              </div>
-              {/* Type Line */}
-              <div style={styles.championTypeLine}>
-                <span>champion</span>
-              </div>
-              {/* Abilities Grid */}
-              <div style={styles.abilitiesGrid}>
-                {champion.abilities.map((ability) => {
-                  const placed = abilityPlacements[ability.id] ?? [];
-                  const hasPlaced = placed.length > 0;
-                  return (
-                    <div
-                      key={ability.id}
-                      style={{
-                        ...styles.abilityZone,
-                        ...(hasPlaced ? styles.abilityZoneActive : {}),
-                      }}
-                      onDragOver={handleAbilityDragOver}
-                      onDrop={(e) => handleAbilityDrop(ability.id, e)}
-                    >
-                      <div style={styles.abilityName}>{ability.name}</div>
-                      <div style={styles.abilityDesc}>{ability.description}</div>
-                      <div style={styles.abilityFilter}>{filterLabel(ability.slotFilter)}</div>
-                      <CubeSlots
-                        total={ability.slots}
-                        filled={placed}
-                        onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(ability.id, slotIdx) : undefined}
-                      />
-                    </div>
-                  );
-                })}
+              {/* Body — art left, abilities right */}
+              <div style={styles.championBody}>
+                <div style={styles.championLeft}>
+                  <div style={styles.championArtBox}>
+                    <div style={styles.championArtOverlay} />
+                    <span style={styles.championArtIcon}>⚔</span>
+                  </div>
+                  <div style={styles.championTypeLine}>
+                    <span>champion</span>
+                  </div>
+                </div>
+                <div style={styles.abilitiesGrid}>
+                  {champion.abilities.map((ability) => {
+                    const placed = abilityPlacements[ability.id] ?? [];
+                    const hasPlaced = placed.length > 0;
+                    return (
+                      <div
+                        key={ability.id}
+                        style={{
+                          ...styles.abilityZone,
+                          ...(hasPlaced ? styles.abilityZoneActive : {}),
+                        }}
+                        onDragOver={handleAbilityDragOver}
+                        onDrop={(e) => handleAbilityDrop(ability.id, e)}
+                      >
+                        <div style={styles.abilityName}>{ability.name}</div>
+                        <div style={styles.abilityDesc}>{ability.description}</div>
+                        <div style={styles.abilityFilter}>{filterLabel(ability.slotFilter)}</div>
+                        <CubeSlots
+                          total={ability.slots}
+                          filled={placed}
+                          onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(ability.id, slotIdx) : undefined}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
@@ -254,16 +281,24 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
           )}
         </div>
 
-        {/* Hero cards */}
-        {tableau.map((hero) => (
-          <Card
-            key={hero.id}
-            card={hero}
-            filledSlots={placements[hero.id] ?? []}
-            onCubeDrop={onCubeDrop}
-            onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
-          />
-        ))}
+        {/* Hero cards — centered */}
+        <div style={styles.heroGroup}>
+          {tableau.map((hero) => (
+            <Card
+              key={hero.id}
+              card={hero}
+              filledSlots={placements[hero.id] ?? []}
+              onCubeDrop={onCubeDrop}
+              onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
+            />
+          ))}
+        </div>
+
+        {/* Band + Bag — right-aligned */}
+        <div style={styles.rightGroup}>
+          {bandSlot}
+          {bagSlot}
+        </div>
       </div>
     </div>
   );
