@@ -234,7 +234,7 @@ function isValidDuskTarget(cubeType, targetType) {
   return true;
 }
 
-export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onTapPlace, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType }) {
+export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onTapPlace, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType, compact = false, onExpand }) {
   const hasAbilities = champion.abilities && champion.abilities.length > 0;
   const dragging = isDusk && draggedCubeType;
 
@@ -361,9 +361,13 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
         </div>
 
         {/* Hero cards — centered */}
-        <div className="player-tableau__heroes" style={styles.heroGroup}>
+        <div className="player-tableau__heroes" style={{
+          ...styles.heroGroup,
+          ...(compact ? { flexDirection: 'column', gap: '4px', alignItems: 'stretch' } : {}),
+        }}>
           {tableau.map((hero) => {
             const heroValid = !dragging || isValidDuskTarget(draggedCubeType, 'hero');
+            const heroSlots = placements[hero.id] ?? [];
             return (
               <div key={hero.id} style={{
                 ...(dragging && heroValid ? glowStyle : {}),
@@ -372,10 +376,14 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
               }}>
                 <Card
                   card={hero}
-                  filledSlots={placements[hero.id] ?? []}
-                  wide={hero.affinity === 'badger'}
+                  filledSlots={heroSlots}
+                  wide={!compact && hero.affinity === 'badger'}
+                  compact={compact}
+                  onExpand={onExpand ? () => onExpand(hero, heroSlots, {
+                    wide: hero.affinity === 'badger',
+                  }) : undefined}
                   onCubeDrop={onCubeDrop}
-                  onTapPlace={onTapPlace}
+                  onTapPlace={!compact ? onTapPlace : undefined}
                   onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
                 />
               </div>

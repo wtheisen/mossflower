@@ -198,25 +198,25 @@ button {
   }
 }
 
-/* Phone portrait */
+/* Phone portrait — compact cards handle most sizing, keep moderate reduction for champion/popover fallback */
 @media (max-width: 500px) and (orientation: portrait) {
   :root {
-    --card-width: 95px;
-    --card-height: 130px;
-    --cube-size: 14px;
-    --slot-size: 12px;
+    --card-width: 115px;
+    --card-height: 155px;
+    --cube-size: 15px;
+    --slot-size: 13px;
     --radius: 6px;
     --radius-sm: 4px;
   }
 }
 
-/* Phone landscape — the critical iPhone SE case */
+/* Phone landscape — compact cards handle sizing */
 @media (max-height: 500px) and (max-width: 900px) {
   :root {
-    --card-width: 85px;
-    --card-height: 115px;
-    --cube-size: 13px;
-    --slot-size: 11px;
+    --card-width: 100px;
+    --card-height: 135px;
+    --cube-size: 14px;
+    --slot-size: 12px;
     --radius: 5px;
     --radius-sm: 3px;
   }

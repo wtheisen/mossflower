@@ -75,7 +75,50 @@ const styles = {
   },
 };
 
-export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, activePlayerIndex = 0, playerCount = 1, championName }) {
+export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, activePlayerIndex = 0, playerCount = 1, championName, compact = false }) {
+  const sq = compact ? 10 : 14;
+
+  if (compact) {
+    return (
+      <div className="status-bar status-bar--compact" style={{
+        ...styles.bar,
+        padding: '2px 8px',
+        gap: '8px',
+        fontSize: '10px',
+        borderBottomWidth: '1px',
+      }}>
+        {playerCount > 1 && (
+          <span style={{ ...styles.value, fontSize: '10px' }}>P{activePlayerIndex + 1}</span>
+        )}
+        <span style={{ ...styles.value, fontSize: '10px' }}>Day {day}</span>
+        <span style={{ ...styles.value, fontSize: '10px', textTransform: 'capitalize' }}>{phase}</span>
+        <div style={styles.spacer} />
+        <div className="status-bar__conquest" style={{ ...styles.conquestArea, gap: '4px' }}>
+          <div style={{ ...styles.conquestTrack, gap: '2px' }}>
+            {Array.from({ length: 10 }, (_, i) => {
+              const filled = i < conquest;
+              const danger = conquest >= 7;
+              return (
+                <div
+                  key={i}
+                  style={{
+                    width: sq, height: sq, borderRadius: '2px',
+                    border: '1px solid',
+                    background: filled ? (danger ? 'var(--accent-red)' : 'var(--type-fortress)') : 'transparent',
+                    borderColor: filled ? (danger ? 'var(--accent-red)' : 'var(--type-fortress)') : 'var(--border-card)',
+                  }}
+                />
+              );
+            })}
+          </div>
+          <span style={{ ...styles.value, fontSize: '10px', color: conquest >= 7 ? 'var(--accent-red)' : undefined }}>
+            {conquest}/10
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="status-bar" style={styles.bar}>
       <span className="status-bar__title" style={styles.title}>Mossflower</span>

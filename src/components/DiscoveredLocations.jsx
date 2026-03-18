@@ -27,31 +27,41 @@ const styles = {
   },
 };
 
-export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop, isDusk, draggedCubeType, playerTokensMap = {}, onTapPlace }) {
+export default function DiscoveredLocations({ locations, onCardClick, canAct, cardSlots = {}, onCubeDrop, isDusk, draggedCubeType, playerTokensMap = {}, onTapPlace, compact = false, onExpand }) {
   const dragging = isDusk && draggedCubeType;
   const locationValid = !dragging || !BUST_TYPES_SET.has(draggedCubeType);
 
   return (
     <div className="discovered-locations" style={styles.section}>
       <div className="discovered-locations__label" style={styles.label}>Discovered Locations</div>
-      <div className="discovered-locations__cards" style={styles.row}>
-        {locations.map((loc) => (
-          <div key={loc.id} style={{
-            ...(dragging && locationValid ? { boxShadow: '0 0 10px 2px rgba(184, 134, 11, 0.5)' } : {}),
-            ...(dragging && !locationValid ? { opacity: 0.4, transition: 'opacity 0.2s' } : {}),
-            borderRadius: 'var(--radius)',
-          }}>
-            <Card
-              card={loc}
-              filledSlots={cardSlots[loc.id] ?? []}
-              onClick={canAct && !onTapPlace ? () => onCardClick?.(loc.id) : undefined}
-              highlighted={canAct}
-              onCubeDrop={onCubeDrop}
-              onTapPlace={onTapPlace}
-              playerTokens={playerTokensMap[loc.id]}
-            />
-          </div>
-        ))}
+      <div className="discovered-locations__cards" style={{
+        ...styles.row,
+        ...(compact ? { flexDirection: 'column', gap: '4px', alignItems: 'stretch' } : {}),
+      }}>
+        {locations.map((loc) => {
+          const slots = cardSlots[loc.id] ?? [];
+          return (
+            <div key={loc.id} style={{
+              ...(dragging && locationValid ? { boxShadow: '0 0 10px 2px rgba(184, 134, 11, 0.5)' } : {}),
+              ...(dragging && !locationValid ? { opacity: 0.4, transition: 'opacity 0.2s' } : {}),
+              borderRadius: 'var(--radius)',
+            }}>
+              <Card
+                card={loc}
+                filledSlots={slots}
+                compact={compact}
+                onExpand={onExpand ? () => onExpand(loc, slots, {
+                  playerTokens: playerTokensMap[loc.id],
+                }) : undefined}
+                onClick={!compact && canAct && !onTapPlace ? () => onCardClick?.(loc.id) : undefined}
+                highlighted={canAct}
+                onCubeDrop={onCubeDrop}
+                onTapPlace={onTapPlace}
+                playerTokens={playerTokensMap[loc.id]}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

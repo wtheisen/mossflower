@@ -190,7 +190,7 @@ const styles = {
   },
 };
 
-export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, onTapPlace, playerTokens }) {
+export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, onTapPlace, playerTokens, compact = false, onExpand }) {
   const borderColor = TYPE_COLORS[card.type] ?? 'var(--border-card)';
   const bgTint = TYPE_BG[card.type] ?? 'transparent';
   const scene = ART_SCENES[card.type] ?? ART_SCENES.hero;
@@ -198,8 +198,77 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
   const totalSlots = card.tableauSlots ?? card.slots ?? 0;
   const affinities = card.affinities ?? (card.affinity ? [card.affinity] : []);
 
-  const interactive = !!onClick || !!onTapPlace;
+  const interactive = !!onClick || !!onTapPlace || !!onExpand;
   const droppable = !!onCubeDrop;
+
+  /* ── Compact chip view for mobile ── */
+  if (compact) {
+    return (
+      <div
+        className="card card--compact"
+        onClick={onExpand || onTapPlace ? () => (onExpand ?? onTapPlace)?.(card.id) : onClick}
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          width: '100%',
+          minHeight: '26px',
+          background: `linear-gradient(170deg, var(--bg-card) 0%, ${bgTint} 100%)`,
+          border: selected
+            ? '2px solid var(--accent-gold)'
+            : `2px solid ${borderColor}`,
+          borderRadius: 'var(--radius-sm)',
+          overflow: 'hidden',
+          cursor: interactive ? 'pointer' : 'default',
+          boxShadow: selected
+            ? '0 0 8px rgba(184, 134, 11, 0.3)'
+            : highlighted
+              ? `0 0 6px ${borderColor}30`
+              : '0 1px 4px rgba(100, 80, 50, 0.1)',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          flexShrink: 0,
+        }}
+        onDragOver={droppable ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } : undefined}
+        onDrop={droppable ? (e) => { e.preventDefault(); const idx = parseInt(e.dataTransfer.getData('cube-index'), 10); if (!isNaN(idx)) onCubeDrop(card.id, idx); } : undefined}
+      >
+        {/* Type-color bar */}
+        <div style={{ width: 4, alignSelf: 'stretch', background: borderColor, flexShrink: 0 }} />
+        {/* Name + cost + affinities */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '2px 6px', gap: 4, minWidth: 0 }}>
+          <span style={{
+            fontSize: '10px', fontWeight: 700, fontFamily: 'var(--font-display)',
+            color: 'var(--text-primary)', flex: 1, overflow: 'hidden',
+            whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+          }}>
+            {card.name}
+          </span>
+          {card.cost != null && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 18, height: 18, borderRadius: '50%', background: 'var(--cube-food)',
+              fontSize: '10px', fontWeight: 800, fontFamily: 'var(--font-display)',
+              color: '#fff', flexShrink: 0, border: '1px solid rgba(255,255,255,0.3)',
+            }}>
+              {card.cost}
+            </span>
+          )}
+          {affinities.map((a) => (
+            <CubeChip key={a} cubeType={a} />
+          ))}
+        </div>
+        {/* Compact slots as filled/total text */}
+        {totalSlots > 0 && (
+          <div style={{
+            padding: '0 8px 0 0', fontSize: '10px', fontWeight: 600,
+            fontFamily: 'var(--font-display)', color: 'var(--text-muted)',
+            flexShrink: 0,
+          }}>
+            <CubeSlots total={totalSlots} filled={filledSlots} onSlotClick={onSlotClick} />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const handleDragOver = (e) => {
     if (!droppable) return;

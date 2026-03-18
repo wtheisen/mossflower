@@ -79,6 +79,7 @@ export default function HordeArea({
   fortress, fortressDeck = [], fortressCleared, villain,
   canAct, cardSlots = {},
   onFortressClick, onVillainClick, playerTokensMap = {},
+  compact = false, onExpand,
 }) {
   const fortressVermin = fortress ? (cardSlots[fortress.id] ?? []) : [];
   const villainVermin = villain ? (cardSlots[villain.id] ?? []) : [];
@@ -91,14 +92,31 @@ export default function HordeArea({
       {/* Fortress */}
       <div style={styles.cardWrapper}>
         {fortress ? (
-          <div
-            style={canAct ? styles.clickable : undefined}
-            onClick={canAct && onFortressClick ? () => onFortressClick(fortress.id) : undefined}
-          >
-            <Card card={fortress} filledSlots={fortressVermin} playerTokens={playerTokensMap[fortress.id]} />
-          </div>
+          compact ? (
+            <Card
+              card={fortress}
+              filledSlots={fortressVermin}
+              compact
+              onExpand={onExpand ? () => onExpand(fortress, fortressVermin, {
+                playerTokens: playerTokensMap[fortress.id],
+              }) : undefined}
+              highlighted={canAct}
+              playerTokens={playerTokensMap[fortress.id]}
+            />
+          ) : (
+            <div
+              style={canAct ? styles.clickable : undefined}
+              onClick={canAct && onFortressClick ? () => onFortressClick(fortress.id) : undefined}
+            >
+              <Card card={fortress} filledSlots={fortressVermin} playerTokens={playerTokensMap[fortress.id]} />
+            </div>
+          )
         ) : (
-          <div style={styles.clearedPlaceholder}>Cleared</div>
+          <div style={compact ? {
+            ...styles.clearedPlaceholder,
+            minHeight: 'auto', height: '32px', width: '100%',
+            fontSize: '10px',
+          } : styles.clearedPlaceholder}>Cleared</div>
         )}
       </div>
 
@@ -111,19 +129,42 @@ export default function HordeArea({
 
       {/* Villain */}
       <div style={styles.cardWrapper}>
-        <div
-          style={{
-            ...(villainLocked ? styles.locked : {}),
-            ...(canAct && !villainLocked ? styles.clickable : {}),
-            position: 'relative',
-          }}
-          onClick={canAct && !villainLocked && onVillainClick ? () => onVillainClick(villain.id) : undefined}
-        >
-          <Card card={villain} filledSlots={villainVermin} playerTokens={playerTokensMap[villain.id]} />
-          {villainLocked && (
-            <div style={styles.lockedBadge}>Locked</div>
-          )}
-        </div>
+        {compact ? (
+          <div style={{ position: 'relative', ...(villainLocked ? { opacity: 0.6 } : {}) }}>
+            <Card
+              card={villain}
+              filledSlots={villainVermin}
+              compact
+              onExpand={onExpand ? () => onExpand(villain, villainVermin, {
+                playerTokens: playerTokensMap[villain.id],
+              }) : undefined}
+              highlighted={canAct && !villainLocked}
+              playerTokens={playerTokensMap[villain.id]}
+            />
+            {villainLocked && (
+              <div style={{
+                ...styles.lockedBadge,
+                top: '50%', left: 'auto', right: '8px',
+                transform: 'translateY(-50%)',
+                fontSize: '9px', padding: '2px 8px',
+              }}>Locked</div>
+            )}
+          </div>
+        ) : (
+          <div
+            style={{
+              ...(villainLocked ? styles.locked : {}),
+              ...(canAct && !villainLocked ? styles.clickable : {}),
+              position: 'relative',
+            }}
+            onClick={canAct && !villainLocked && onVillainClick ? () => onVillainClick(villain.id) : undefined}
+          >
+            <Card card={villain} filledSlots={villainVermin} playerTokens={playerTokensMap[villain.id]} />
+            {villainLocked && (
+              <div style={styles.lockedBadge}>Locked</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

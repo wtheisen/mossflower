@@ -207,7 +207,11 @@ export default function Band({
               onDragEnd={isDusk ? handleDragEnd : undefined}
               onClick={isDusk && onSelectCube ? () => onSelectCube(selectedCubeIndex === i ? null : i) : undefined}
               className={isDusk && selectedCubeIndex === i ? 'cube-selected' : ''}
-              style={{ cursor: isDusk ? 'grab' : 'default', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+              style={{
+                cursor: isDusk ? 'pointer' : 'default',
+                display: 'inline-flex', alignItems: 'center', gap: '2px',
+                ...(isDusk ? { padding: '6px', minWidth: '32px', minHeight: '32px', justifyContent: 'center', borderRadius: '6px', background: selectedCubeIndex === i ? 'rgba(184, 134, 11, 0.12)' : 'transparent' } : {}),
+              }}
             >
               <CubeChip cubeType={type} />
               {isDusk && type === 'food' && onDiscardFood && (

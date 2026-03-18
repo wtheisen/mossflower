@@ -37,6 +37,90 @@
 }
 
 /* ============================================================
+   MOBILE TABBED LAYOUT
+   ============================================================ */
+.board--mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.mobile-tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mobile-board-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-board-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mobile-board-left {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.mobile-board-right {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border-card);
+  overflow: hidden;
+}
+
+.mobile-player-view {
+  height: 100%;
+  overflow: hidden;
+  padding: 4px 6px;
+}
+
+/* ── Mobile tab bar ── */
+.mobile-tab-bar {
+  display: flex;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-card);
+  background: var(--bg-elevated);
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  min-height: 32px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.mobile-tab-btn--active {
+  color: var(--accent-gold);
+  background: var(--bg-card);
+  border-top: 2px solid var(--accent-gold);
+}
+
+
+/* ============================================================
    PHONE LANDSCAPE  (iPhone SE landscape = 667×375)
    Keep side-by-side columns, shrink everything aggressively
    ============================================================ */
@@ -64,78 +148,53 @@
   /* ── StatusBar ── */
   .status-bar {
     padding: 2px 8px !important;
-    gap: 8px !important;
-    font-size: 10px !important;
+    gap: 6px !important;
+    font-size: 9px !important;
   }
   .status-bar__title {
-    font-size: 13px !important;
+    font-size: 11px !important;
   }
   .status-bar__divider {
-    height: 12px !important;
+    height: 10px !important;
   }
   .status-bar__ornament {
     display: none !important;
   }
   .status-bar__conquest {
-    gap: 3px !important;
+    gap: 2px !important;
   }
 
   /* ── AdventureRow ── */
   .adventure-row {
-    padding: 3px 6px !important;
+    padding: 2px 0 !important;
   }
   .adventure-row__label {
     font-size: 8px !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
   }
   .adventure-row__cards {
     justify-content: flex-start !important;
-    gap: 5px !important;
-    padding-bottom: 2px !important;
+    gap: 3px !important;
+    padding-bottom: 0 !important;
   }
 
   /* ── DiscoveredLocations ── */
   .discovered-locations {
-    padding: 2px 6px 3px !important;
+    padding: 1px 0 !important;
   }
   .discovered-locations__label {
     font-size: 8px !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
   }
   .discovered-locations__cards {
     justify-content: flex-start !important;
-    gap: 5px !important;
+    gap: 3px !important;
   }
 
   /* ── HordeArea ── */
   .horde-area {
     padding: 3px 4px !important;
-    gap: 4px !important;
-  }
-
-  /* ── Card internals ── */
-  .card__title-bar {
-    padding: 2px 4px 1px !important;
-    min-height: 16px !important;
-  }
-  .card__art-box {
-    height: 28px !important;
-    margin: 0 3px !important;
-  }
-  .card__wide-art {
-    width: 55px !important;
-  }
-  .card__text-box {
-    padding: 2px 4px !important;
-    margin: 1px 3px 0 !important;
-    min-height: 20px !important;
-  }
-  .card__text-box p {
-    font-size: 7.5px !important;
-    line-height: 1.2 !important;
-  }
-  .card__slots-footer {
-    padding: 1px 4px 2px !important;
+    gap: 3px !important;
   }
 
   /* ── PlayerTableau ── */
@@ -147,11 +206,7 @@
   .player-tableau__row {
     gap: 5px !important;
   }
-  .player-tableau__champion-left {
-    width: var(--card-width) !important;
-  }
   .player-tableau__abilities-grid {
-    grid-template-columns: 1fr 1fr !important;
     gap: 2px !important;
     padding: 2px !important;
   }
@@ -233,88 +288,48 @@
    ============================================================ */
 @media (max-width: 500px) and (orientation: portrait) {
 
-  /* ── Layout: stack vertically ── */
-  .main-area {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-  .right-column {
-    border-left: none;
-    border-top: 1px solid var(--border-card);
-  }
-  .player-area {
-    padding: 5px 8px !important;
-  }
-
   /* ── StatusBar ── */
   .status-bar {
-    padding: 4px 8px !important;
-    gap: 8px !important;
+    padding: 2px 8px !important;
+    gap: 6px !important;
     flex-wrap: wrap !important;
+    font-size: 9px !important;
   }
   .status-bar__title {
-    font-size: 14px !important;
+    font-size: 11px !important;
   }
   .status-bar__ornament {
     display: none !important;
   }
 
-  /* ── Card rows: left-align for scroll ── */
+  /* ── AdventureRow ── */
   .adventure-row {
-    padding: 5px 8px !important;
+    padding: 2px 0 !important;
   }
   .adventure-row__label {
-    font-size: 9px !important;
-    margin-bottom: 3px !important;
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
   }
   .adventure-row__cards {
     justify-content: flex-start !important;
-    gap: 6px !important;
+    gap: 3px !important;
   }
   .discovered-locations {
-    padding: 3px 8px 5px !important;
+    padding: 1px 0 !important;
   }
   .discovered-locations__label {
-    font-size: 9px !important;
-    margin-bottom: 3px !important;
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
   }
   .discovered-locations__cards {
     justify-content: flex-start !important;
-    gap: 6px !important;
+    gap: 3px !important;
   }
 
   /* ── HordeArea ── */
   .horde-area {
-    padding: 5px 8px !important;
-    gap: 6px !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-  }
-
-  /* ── Card internals ── */
-  .card__title-bar {
-    padding: 2px 5px 1px !important;
-    min-height: 18px !important;
-  }
-  .card__art-box {
-    height: 32px !important;
-    margin: 0 3px !important;
-  }
-  .card__wide-art {
-    width: 65px !important;
-  }
-  .card__text-box {
-    padding: 2px 5px !important;
-    margin: 1px 3px 0 !important;
-    min-height: 24px !important;
-  }
-  .card__text-box p {
-    font-size: 8px !important;
-    line-height: 1.25 !important;
-  }
-  .card__slots-footer {
-    padding: 2px 4px 3px !important;
+    padding: 3px 4px !important;
+    gap: 3px !important;
   }
 
   /* ── PlayerTableau ── */
@@ -327,7 +342,6 @@
     flex-wrap: wrap !important;
   }
   .player-tableau__abilities-grid {
-    grid-template-columns: 1fr 1fr !important;
     gap: 3px !important;
     padding: 3px !important;
   }
@@ -416,4 +430,31 @@
   .setup-grid {
     grid-template-columns: 1fr !important;
   }
+
+  /* Hide champion art on mobile — abilities grid is enough */
+  .player-tableau__champion-left {
+    display: none !important;
+  }
+
+  /* Abilities grid goes 1-column on mobile */
+  .player-tableau__abilities-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   CARD DETAIL POPOVER — always render at full desktop size
+   ============================================================ */
+.card-detail {
+  --card-width: 170px;
+  --card-height: 220px;
+  --cube-size: 22px;
+  --slot-size: 20px;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

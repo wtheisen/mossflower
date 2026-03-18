@@ -59,22 +59,31 @@ const styles = {
   },
 };
 
-export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocationClick, selectedId, canAct, cardSlots = {}, playerTokensMap = {} }) {
+export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocationClick, selectedId, canAct, cardSlots = {}, playerTokensMap = {}, compact = false, onExpand }) {
   return (
     <div className="adventure-row" style={styles.section}>
       <div className="adventure-row__label" style={styles.label}>Adventure Row</div>
-      <div className="adventure-row__cards" style={styles.row}>
+      <div className="adventure-row__cards" style={{
+        ...styles.row,
+        ...(compact ? { flexDirection: 'column', gap: '4px', alignItems: 'stretch' } : {}),
+      }}>
         {cards.map((card) => {
           const isHero = card.type === 'hero';
           const isLocation = card.type === 'location';
           const clickable = canAct && (isHero || isLocation);
+          const slots = cardSlots[card.id] ?? [];
           return (
             <Card
               key={card.id}
               card={card}
-              filledSlots={cardSlots[card.id] ?? []}
-              wide={card.affinity === 'badger'}
-              onClick={clickable
+              filledSlots={slots}
+              wide={!compact && card.affinity === 'badger'}
+              compact={compact}
+              onExpand={onExpand ? () => onExpand(card, slots, {
+                playerTokens: playerTokensMap[card.id],
+                wide: card.affinity === 'badger',
+              }) : undefined}
+              onClick={!compact && clickable
                 ? () => (isHero ? onCardClick : onLocationClick)?.(card.id)
                 : undefined}
               selected={card.id === selectedId}
@@ -83,11 +92,23 @@ export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocat
             />
           );
         })}
-        <div style={styles.deck}>
-          <div style={styles.deckLabel}>Adventure</div>
-          <div style={styles.deckCount}>{deckSize}</div>
-          <div style={styles.deckSub}>cards remaining</div>
-        </div>
+        {compact ? (
+          <div className="adventure-row__deck-compact" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '4px 8px', fontSize: '10px', fontWeight: 600,
+            fontFamily: 'var(--font-display)', color: 'var(--text-muted)',
+            background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-subtle)',
+          }}>
+            Deck: {deckSize}
+          </div>
+        ) : (
+          <div style={styles.deck}>
+            <div style={styles.deckLabel}>Adventure</div>
+            <div style={styles.deckCount}>{deckSize}</div>
+            <div style={styles.deckSub}>cards remaining</div>
+          </div>
+        )}
       </div>
     </div>
   );
