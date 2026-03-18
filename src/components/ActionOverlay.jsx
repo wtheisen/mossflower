@@ -125,8 +125,8 @@ export default function ActionOverlay({
   const canRequestHelp = players && players.length > 1 && !helpPhase && !busted && band.length > 0;
 
   return (
-    <div style={styles.backdrop} onClick={isCombat ? undefined : onCancel}>
-      <div style={styles.panel} onClick={(e) => e.stopPropagation()}>
+    <div className="action-overlay" style={styles.backdrop} onClick={isCombat ? undefined : onCancel}>
+      <div className="action-overlay__panel" style={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div style={styles.cardSection}>
           <div style={styles.targetLabel}>{label}</div>
           <Card card={targetCard} selected />

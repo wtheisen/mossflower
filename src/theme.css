@@ -180,12 +180,14 @@ button {
 }
 
 /* ── Responsive breakpoints ── */
+
+/* Small tablet / large phone */
 @media (max-width: 768px) {
   :root {
-    --card-width: 140px;
-    --card-height: 185px;
-    --cube-size: 18px;
-    --slot-size: 16px;
+    --card-width: 115px;
+    --card-height: 155px;
+    --cube-size: 16px;
+    --slot-size: 14px;
   }
   #root {
     border: none;
@@ -196,12 +198,34 @@ button {
   }
 }
 
-@media (max-width: 480px) {
+/* Phone portrait */
+@media (max-width: 500px) and (orientation: portrait) {
   :root {
-    --card-width: 120px;
-    --card-height: 160px;
-    --cube-size: 16px;
-    --slot-size: 14px;
+    --card-width: 95px;
+    --card-height: 130px;
+    --cube-size: 14px;
+    --slot-size: 12px;
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+}
+
+/* Phone landscape — the critical iPhone SE case */
+@media (max-height: 500px) and (max-width: 900px) {
+  :root {
+    --card-width: 85px;
+    --card-height: 115px;
+    --cube-size: 13px;
+    --slot-size: 11px;
+    --radius: 5px;
+    --radius-sm: 3px;
+  }
+  #root {
+    border: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    height: 100dvh;
   }
 }
 

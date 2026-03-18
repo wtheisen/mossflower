@@ -76,9 +76,9 @@ export default function Bag({ cubes }) {
   );
 
   return (
-    <div style={styles.container}>
-      <div style={styles.label}>Bag</div>
-      <div style={styles.count}>{cubes.length}</div>
+    <div className="bag" style={styles.container}>
+      <div className="bag__label" style={styles.label}>Bag</div>
+      <div className="bag__count" style={styles.count}>{cubes.length}</div>
       <div style={styles.rows}>
         {sorted.map(([type, count]) => {
           const info = CUBE_TYPES[type];

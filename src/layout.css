@@ -1,4 +1,4 @@
-/* ── Responsive Layout ── */
+/* ── Base Layout ── */
 
 .board {
   flex: 1;
@@ -36,38 +36,384 @@
   overflow-x: auto;
 }
 
-/* ── Mobile: stack columns vertically ── */
-@media (max-width: 768px) {
+/* ============================================================
+   PHONE LANDSCAPE  (iPhone SE landscape = 667×375)
+   Keep side-by-side columns, shrink everything aggressively
+   ============================================================ */
+@media (max-height: 500px) and (max-width: 900px) {
+
+  /* ── Layout ── */
+  .main-area {
+    flex-direction: row !important;
+    overflow: hidden;
+  }
+  .left-column {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .right-column {
+    max-width: 105px;
+    border-left: 1px solid var(--border-card);
+  }
+  .player-area {
+    padding: 3px 6px !important;
+    max-height: 42%;
+    overflow-y: auto;
+  }
+
+  /* ── StatusBar ── */
+  .status-bar {
+    padding: 2px 8px !important;
+    gap: 8px !important;
+    font-size: 10px !important;
+  }
+  .status-bar__title {
+    font-size: 13px !important;
+  }
+  .status-bar__divider {
+    height: 12px !important;
+  }
+  .status-bar__ornament {
+    display: none !important;
+  }
+  .status-bar__conquest {
+    gap: 3px !important;
+  }
+
+  /* ── AdventureRow ── */
+  .adventure-row {
+    padding: 3px 6px !important;
+  }
+  .adventure-row__label {
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+  }
+  .adventure-row__cards {
+    justify-content: flex-start !important;
+    gap: 5px !important;
+    padding-bottom: 2px !important;
+  }
+
+  /* ── DiscoveredLocations ── */
+  .discovered-locations {
+    padding: 2px 6px 3px !important;
+  }
+  .discovered-locations__label {
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+  }
+  .discovered-locations__cards {
+    justify-content: flex-start !important;
+    gap: 5px !important;
+  }
+
+  /* ── HordeArea ── */
+  .horde-area {
+    padding: 3px 4px !important;
+    gap: 4px !important;
+  }
+
+  /* ── Card internals ── */
+  .card__title-bar {
+    padding: 2px 4px 1px !important;
+    min-height: 16px !important;
+  }
+  .card__art-box {
+    height: 28px !important;
+    margin: 0 3px !important;
+  }
+  .card__wide-art {
+    width: 55px !important;
+  }
+  .card__text-box {
+    padding: 2px 4px !important;
+    margin: 1px 3px 0 !important;
+    min-height: 20px !important;
+  }
+  .card__text-box p {
+    font-size: 7.5px !important;
+    line-height: 1.2 !important;
+  }
+  .card__slots-footer {
+    padding: 1px 4px 2px !important;
+  }
+
+  /* ── PlayerTableau ── */
+  .player-tableau__label {
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+    gap: 6px !important;
+  }
+  .player-tableau__row {
+    gap: 5px !important;
+  }
+  .player-tableau__champion-left {
+    width: var(--card-width) !important;
+  }
+  .player-tableau__abilities-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2px !important;
+    padding: 2px !important;
+  }
+  .player-tableau__abilities-grid > div {
+    padding: 3px 5px !important;
+  }
+  .player-tableau__abilities-grid > div > div:first-child {
+    font-size: 8px !important;
+  }
+  .player-tableau__abilities-grid > div > div:nth-child(2) {
+    font-size: 7px !important;
+  }
+  .player-tableau__heroes {
+    gap: 5px !important;
+    justify-content: flex-start !important;
+  }
+  .player-tableau__right-group {
+    gap: 5px !important;
+  }
+
+  /* ── Band ── */
+  .band {
+    padding: 4px 6px !important;
+    min-width: 90px !important;
+  }
+  .band__label {
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
+  }
+  .band__count {
+    font-size: 14px !important;
+    margin-bottom: 2px !important;
+  }
+  .band__cubes {
+    gap: 3px !important;
+    margin-bottom: 3px !important;
+  }
+  .band__buttons {
+    gap: 2px !important;
+    margin-top: 2px !important;
+  }
+  .band__buttons button {
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px;
+  }
+
+  /* ── Bag ── */
+  .bag {
+    padding: 4px 6px !important;
+    min-width: 80px !important;
+  }
+  .bag__label {
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
+  }
+  .bag__count {
+    font-size: 14px !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* ── ActionOverlay ── */
+  .action-overlay__panel {
+    padding: 10px !important;
+    gap: 10px !important;
+    max-height: 95vh !important;
+  }
+
+  /* ── LandingPage setup grid ── */
+  .setup-grid {
+    gap: 16px !important;
+  }
+}
+
+
+/* ============================================================
+   PHONE PORTRAIT  (iPhone SE portrait = 375×667)
+   Stack columns vertically, compact everything
+   ============================================================ */
+@media (max-width: 500px) and (orientation: portrait) {
+
+  /* ── Layout: stack vertically ── */
   .main-area {
     flex-direction: column;
     overflow-y: auto;
   }
-
   .right-column {
     border-left: none;
-    border-top: 2px solid var(--border-card);
+    border-top: 1px solid var(--border-card);
   }
-
   .player-area {
-    padding: 10px 12px;
+    padding: 5px 8px !important;
   }
-}
 
-/* ── ActionOverlay mobile stacking ── */
-@media (max-width: 600px) {
-  /* ActionOverlay panel */
-  [style*="backdrop-filter"] > div {
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
-    gap: 16px;
+  /* ── StatusBar ── */
+  .status-bar {
+    padding: 4px 8px !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
   }
-}
+  .status-bar__title {
+    font-size: 14px !important;
+  }
+  .status-bar__ornament {
+    display: none !important;
+  }
 
-/* ── LandingPage setup grid: 1-column on mobile ── */
-@media (max-width: 768px) {
+  /* ── Card rows: left-align for scroll ── */
+  .adventure-row {
+    padding: 5px 8px !important;
+  }
+  .adventure-row__label {
+    font-size: 9px !important;
+    margin-bottom: 3px !important;
+  }
+  .adventure-row__cards {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+  .discovered-locations {
+    padding: 3px 8px 5px !important;
+  }
+  .discovered-locations__label {
+    font-size: 9px !important;
+    margin-bottom: 3px !important;
+  }
+  .discovered-locations__cards {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+
+  /* ── HordeArea ── */
+  .horde-area {
+    padding: 5px 8px !important;
+    gap: 6px !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  /* ── Card internals ── */
+  .card__title-bar {
+    padding: 2px 5px 1px !important;
+    min-height: 18px !important;
+  }
+  .card__art-box {
+    height: 32px !important;
+    margin: 0 3px !important;
+  }
+  .card__wide-art {
+    width: 65px !important;
+  }
+  .card__text-box {
+    padding: 2px 5px !important;
+    margin: 1px 3px 0 !important;
+    min-height: 24px !important;
+  }
+  .card__text-box p {
+    font-size: 8px !important;
+    line-height: 1.25 !important;
+  }
+  .card__slots-footer {
+    padding: 2px 4px 3px !important;
+  }
+
+  /* ── PlayerTableau ── */
+  .player-tableau__label {
+    font-size: 9px !important;
+    margin-bottom: 3px !important;
+  }
+  .player-tableau__row {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  .player-tableau__abilities-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    padding: 3px !important;
+  }
+  .player-tableau__abilities-grid > div {
+    padding: 4px 6px !important;
+  }
+  .player-tableau__abilities-grid > div > div:first-child {
+    font-size: 9px !important;
+  }
+  .player-tableau__abilities-grid > div > div:nth-child(2) {
+    font-size: 7.5px !important;
+  }
+  .player-tableau__heroes {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+  .player-tableau__right-group {
+    gap: 6px !important;
+  }
+
+  /* ── Band ── */
+  .band {
+    padding: 5px 8px !important;
+    min-width: 95px !important;
+  }
+  .band__label {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+  }
+  .band__count {
+    font-size: 15px !important;
+    margin-bottom: 3px !important;
+  }
+  .band__buttons {
+    gap: 3px !important;
+    margin-top: 3px !important;
+  }
+  .band__buttons button {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    min-height: 32px;
+  }
+
+  /* ── Bag ── */
+  .bag {
+    padding: 5px 8px !important;
+    min-width: 85px !important;
+  }
+  .bag__label {
+    font-size: 9px !important;
+  }
+  .bag__count {
+    font-size: 15px !important;
+    margin-bottom: 3px !important;
+  }
+
+  /* ── ActionOverlay ── */
+  .action-overlay__panel {
+    padding: 12px !important;
+    gap: 12px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* ── LandingPage setup grid: 1-column ── */
   .setup-grid {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    gap: 16px !important;
+  }
+}
+
+
+/* ============================================================
+   SMALL TABLET  (768px and under, catch-all)
+   ============================================================ */
+@media (max-width: 768px) {
+  .adventure-row__cards {
+    justify-content: flex-start !important;
+  }
+  .discovered-locations__cards {
+    justify-content: flex-start !important;
+  }
+  .status-bar__ornament {
+    display: none !important;
+  }
+  .setup-grid {
+    grid-template-columns: 1fr !important;
   }
 }

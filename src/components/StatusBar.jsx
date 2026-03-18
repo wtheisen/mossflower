@@ -77,9 +77,9 @@ const styles = {
 
 export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, activePlayerIndex = 0, playerCount = 1, championName }) {
   return (
-    <div style={styles.bar}>
-      <span style={styles.title}>Mossflower</span>
-      <span style={styles.divider} />
+    <div className="status-bar" style={styles.bar}>
+      <span className="status-bar__title" style={styles.title}>Mossflower</span>
+      <span className="status-bar__divider" style={styles.divider} />
       {playerCount > 1 && (
         <>
           <div style={styles.stat}>
@@ -99,7 +99,7 @@ export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, active
         <span style={styles.value}>{phase}</span>
       </div>
       <div style={styles.spacer} />
-      <div style={styles.conquestArea}>
+      <div className="status-bar__conquest" style={styles.conquestArea}>
         <span style={styles.label}>Conquest</span>
         <div style={styles.conquestTrack}>
           {Array.from({ length: 10 }, (_, i) => {
@@ -125,7 +125,7 @@ export default function StatusBar({ day = 1, phase = 'Day', conquest = 0, active
           {conquest}/10
         </span>
       </div>
-      <span style={styles.ornament}>~ ~ ~</span>
+      <span className="status-bar__ornament" style={styles.ornament}>~ ~ ~</span>
     </div>
   );
 }

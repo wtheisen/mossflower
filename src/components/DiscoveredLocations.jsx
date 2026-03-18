@@ -32,9 +32,9 @@ export default function DiscoveredLocations({ locations, onCardClick, canAct, ca
   const locationValid = !dragging || !BUST_TYPES_SET.has(draggedCubeType);
 
   return (
-    <div style={styles.section}>
-      <div style={styles.label}>Discovered Locations</div>
-      <div style={styles.row}>
+    <div className="discovered-locations" style={styles.section}>
+      <div className="discovered-locations__label" style={styles.label}>Discovered Locations</div>
+      <div className="discovered-locations__cards" style={styles.row}>
         {locations.map((loc) => (
           <div key={loc.id} style={{
             ...(dragging && locationValid ? { boxShadow: '0 0 10px 2px rgba(184, 134, 11, 0.5)' } : {}),

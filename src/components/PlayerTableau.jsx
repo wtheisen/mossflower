@@ -259,8 +259,8 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
   };
 
   return (
-    <div style={styles.section}>
-      <div style={styles.label}>
+    <div className="player-tableau" style={styles.section}>
+      <div className="player-tableau__label" style={styles.label}>
         {playerCount > 1 && (
           <button style={styles.navArrow} onClick={onPrevPlayer} title="Previous player">
             ‹
@@ -278,12 +278,12 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
           </button>
         )}
       </div>
-      <div style={styles.row}>
+      <div className="player-tableau__row" style={styles.row}>
         {/* Champion card area */}
-        <div style={styles.championArea}>
+        <div className="player-tableau__champion" style={styles.championArea}>
           {hasAbilities ? (
             /* Champion with abilities: render as a large card with embedded ability zones */
-            <div style={{
+            <div className="player-tableau__champion-card" style={{
               ...styles.championCard,
               ...(dragging && championValid ? glowStyle : {}),
               ...(dragging && !championValid ? dimStyle : {}),
@@ -300,8 +300,8 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                 )}
               </div>
               {/* Body — art left, abilities right */}
-              <div style={styles.championBody}>
-                <div style={styles.championLeft}>
+              <div className="player-tableau__champion-body" style={styles.championBody}>
+                <div className="player-tableau__champion-left" style={styles.championLeft}>
                   <div style={styles.championArtBox}>
                     <div style={styles.championArtOverlay} />
                     <span style={styles.championArtIcon}>⚔</span>
@@ -310,7 +310,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                     <span>champion</span>
                   </div>
                 </div>
-                <div style={styles.abilitiesGrid}>
+                <div className="player-tableau__abilities-grid" style={styles.abilitiesGrid}>
                   {champion.abilities.map((ability) => {
                     const placed = abilityPlacements[ability.id] ?? [];
                     const hasPlaced = placed.length > 0;
@@ -361,7 +361,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
         </div>
 
         {/* Hero cards — centered */}
-        <div style={styles.heroGroup}>
+        <div className="player-tableau__heroes" style={styles.heroGroup}>
           {tableau.map((hero) => {
             const heroValid = !dragging || isValidDuskTarget(draggedCubeType, 'hero');
             return (
@@ -384,7 +384,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
         </div>
 
         {/* Band + Bag — right-aligned */}
-        <div style={styles.rightGroup}>
+        <div className="player-tableau__right-group" style={styles.rightGroup}>
           {bandSlot}
           {bagSlot}
         </div>

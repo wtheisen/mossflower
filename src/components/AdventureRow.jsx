@@ -61,9 +61,9 @@ const styles = {
 
 export default function AdventureRow({ cards, deckSize = 0, onCardClick, onLocationClick, selectedId, canAct, cardSlots = {}, playerTokensMap = {} }) {
   return (
-    <div style={styles.section}>
-      <div style={styles.label}>Adventure Row</div>
-      <div style={styles.row}>
+    <div className="adventure-row" style={styles.section}>
+      <div className="adventure-row__label" style={styles.label}>Adventure Row</div>
+      <div className="adventure-row__cards" style={styles.row}>
         {cards.map((card) => {
           const isHero = card.type === 'hero';
           const isLocation = card.type === 'location';

@@ -85,7 +85,7 @@ export default function HordeArea({
   const villainLocked = !fortressCleared;
 
   return (
-    <div style={styles.section}>
+    <div className="horde-area" style={styles.section}>
       <div style={styles.label}>The Horde</div>
 
       {/* Fortress */}

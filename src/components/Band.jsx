@@ -153,9 +153,9 @@ export default function Band({
   const triggerMessages = drawBonuses?.messages?.slice(-3) ?? [];
 
   return (
-    <div style={styles.container}>
-      <div style={styles.label}>Band (drawn)</div>
-      <div style={styles.count}>{cubes.length}</div>
+    <div className="band" style={styles.container}>
+      <div className="band__label" style={styles.label}>Band (drawn)</div>
+      <div className="band__count" style={styles.count}>{cubes.length}</div>
 
       {/* Power and bust threshold during actions */}
       {inAction && cubes.length > 0 && (
@@ -193,7 +193,7 @@ export default function Band({
         </div>
       )}
 
-      <div style={styles.cubes}>
+      <div className="band__cubes" style={styles.cubes}>
         {cubes.length === 0 ? (
           <span style={styles.empty}>
             {inAction ? 'Draw to begin' : isDusk ? 'All cubes placed!' : 'No cubes drawn'}
@@ -240,7 +240,7 @@ export default function Band({
       </div>
 
       {inAction && (
-        <div style={styles.buttons}>
+        <div className="band__buttons" style={styles.buttons}>
           {!busted && (
             <button
               style={{
@@ -290,7 +290,7 @@ export default function Band({
       )}
 
       {canEndDay && !inAction && (
-        <div style={styles.buttons}>
+        <div className="band__buttons" style={styles.buttons}>
           <button
             style={{ ...styles.btn, ...styles.btnDraw }}
             onClick={onEndDay}
@@ -301,7 +301,7 @@ export default function Band({
       )}
 
       {isNight && (
-        <div style={styles.buttons}>
+        <div className="band__buttons" style={styles.buttons}>
           <button
             style={{ ...styles.btn, ...styles.btnDraw }}
             onClick={onEndNight}

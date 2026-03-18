@@ -221,7 +221,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
       onClick={onTapPlace ? () => onTapPlace(card.id) : onClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={onTapPlace ? 'cube-valid-target' : ''}
+      className={`card${onTapPlace ? ' cube-valid-target' : ''}`}
       style={{
         ...styles.card,
         width: wide ? 'calc(var(--card-width) * 2 + 12px)' : 'var(--card-width)',
@@ -241,6 +241,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
     >
       {/* ── Title Bar ── */}
       <div
+        className="card__title-bar"
         style={{
           ...styles.titleBar,
           background: borderColor,
@@ -287,6 +288,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
         <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
           {/* Art box — taller, left side */}
           <div
+            className="card__wide-art"
             style={{
               ...styles.artBox,
               margin: '0 0 0 5px',
@@ -334,6 +336,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
         <>
           {/* ── Art Box ── */}
           <div
+            className="card__art-box"
             style={{
               ...styles.artBox,
               background: scene.bg,
@@ -361,7 +364,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
           </div>
 
           {/* ── Text Box ── */}
-          <div style={styles.textBox}>
+          <div className="card__text-box" style={styles.textBox}>
             {(card.abilityText || card.actionText) && (
               <p style={styles.abilityText}>
                 {card.abilityText ?? card.actionText}
@@ -382,7 +385,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
 
       {/* ── Slots Footer ── */}
       {totalSlots > 0 && (
-        <div style={styles.slotsFooter}>
+        <div className="card__slots-footer" style={styles.slotsFooter}>
           <span style={styles.slotsLabel}>
             {filledSlots.length}/{totalSlots}
           </span>
