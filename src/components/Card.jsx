@@ -281,51 +281,103 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
         </div>
       )}
 
-      {/* ── Art Box ── */}
-      <div
-        style={{
-          ...styles.artBox,
-          background: scene.bg,
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: scene.overlay,
-            pointerEvents: 'none',
-          }}
-        />
-        <span style={styles.artIcon}>{scene.icon}</span>
-      </div>
+      {/* ── Card Body ── */}
+      {wide ? (
+        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+          {/* Art box — taller, left side */}
+          <div
+            style={{
+              ...styles.artBox,
+              margin: '0 0 0 5px',
+              height: 'auto',
+              width: '120px',
+              flexShrink: 0,
+              alignSelf: 'stretch',
+              marginTop: '4px',
+              marginBottom: '4px',
+              borderRadius: '4px',
+            }}
+          >
+            <div style={{ position: 'absolute', inset: 0, background: scene.bg }} />
+            <div style={{ position: 'absolute', inset: 0, background: scene.overlay, pointerEvents: 'none' }} />
+            <span style={styles.artIcon}>{scene.icon}</span>
+          </div>
+          {/* Right side — type line + text */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <div style={styles.typeLine}>
+              <span style={styles.typeLabel}>
+                {card.type}
+                {card.affinity ? ` — ${card.affinity}` : ''}
+                {card.verminLimit != null ? ` · threat ${card.verminLimit}` : ''}
+                {card.startingVermin != null ? ` · vermin ${card.startingVermin}` : ''}
+              </span>
+            </div>
+            <div style={{ ...styles.textBox, marginRight: '5px' }}>
+              {(card.abilityText || card.actionText) && (
+                <p style={styles.abilityText}>
+                  {card.abilityText ?? card.actionText}
+                </p>
+              )}
+              {card.cost != null && (
+                <>
+                  <div style={styles.flavorDivider} />
+                  <p style={styles.flavorText}>
+                    Excess power removes inexperience
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ── Art Box ── */}
+          <div
+            style={{
+              ...styles.artBox,
+              background: scene.bg,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: scene.overlay,
+                pointerEvents: 'none',
+              }}
+            />
+            <span style={styles.artIcon}>{scene.icon}</span>
+          </div>
 
-      {/* ── Type Line ── */}
-      <div style={styles.typeLine}>
-        <span style={styles.typeLabel}>
-          {card.type}
-          {card.affinity ? ` — ${card.affinity}` : ''}
-          {card.verminLimit != null ? ` · threat ${card.verminLimit}` : ''}
-          {card.startingVermin != null ? ` · vermin ${card.startingVermin}` : ''}
-        </span>
-      </div>
+          {/* ── Type Line ── */}
+          <div style={styles.typeLine}>
+            <span style={styles.typeLabel}>
+              {card.type}
+              {card.affinity ? ` — ${card.affinity}` : ''}
+              {card.verminLimit != null ? ` · threat ${card.verminLimit}` : ''}
+              {card.startingVermin != null ? ` · vermin ${card.startingVermin}` : ''}
+            </span>
+          </div>
 
-      {/* ── Text Box ── */}
-      <div style={styles.textBox}>
-        {(card.abilityText || card.actionText) && (
-          <p style={styles.abilityText}>
-            {card.abilityText ?? card.actionText}
-          </p>
-        )}
+          {/* ── Text Box ── */}
+          <div style={styles.textBox}>
+            {(card.abilityText || card.actionText) && (
+              <p style={styles.abilityText}>
+                {card.abilityText ?? card.actionText}
+              </p>
+            )}
 
-        {card.cost != null && (
-          <>
-            <div style={styles.flavorDivider} />
-            <p style={styles.flavorText}>
-              Excess power removes inexperience
-            </p>
-          </>
-        )}
-      </div>
+            {card.cost != null && (
+              <>
+                <div style={styles.flavorDivider} />
+                <p style={styles.flavorText}>
+                  Excess power removes inexperience
+                </p>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       {/* ── Slots Footer ── */}
       {totalSlots > 0 && (

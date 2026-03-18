@@ -918,13 +918,20 @@ export default function useGameState(config) {
         }
       }
 
+      // Transfer cubes from adventure row card to player's placements
+      const heroSlots = s.cardSlots[target.id] ?? [];
+      const newCardSlots = { ...s.cardSlots };
+      delete newCardSlots[target.id];
+
       let result = {
         ...s,
         helpPhase: false,
         adventureRow: s.adventureRow.filter((c) => c.id !== target.id),
+        cardSlots: newCardSlots,
       };
       result = patchActivePlayer(result, {
         tableau: [...p.tableau, target],
+        placements: { ...p.placements, [target.id]: heroSlots },
         band: newBand,
         bag: shuffleArray(newBag),
         action: null,

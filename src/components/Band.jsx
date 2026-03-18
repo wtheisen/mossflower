@@ -246,7 +246,7 @@ export default function Band({
               Draw Cube
             </button>
           )}
-          {!busted && !isCombat && cubes.length > 0 && (
+          {!busted && !isCombat && (
             <button
               style={{ ...styles.btn, ...styles.btnRecruit }}
               onClick={onRecruit}
