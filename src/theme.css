@@ -178,3 +178,59 @@ button {
     transform: translateY(100vh) rotate(360deg) translateX(-20px);
   }
 }
+
+/* ── Responsive breakpoints ── */
+@media (max-width: 768px) {
+  :root {
+    --card-width: 140px;
+    --card-height: 185px;
+    --cube-size: 18px;
+    --slot-size: 16px;
+  }
+  #root {
+    border: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    height: 100dvh;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --card-width: 120px;
+    --card-height: 160px;
+    --cube-size: 16px;
+    --slot-size: 14px;
+  }
+}
+
+/* ── Touch interaction styles ── */
+@media (pointer: coarse) {
+  body {
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* ── Tap-to-select cube highlight ── */
+.cube-selected {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+  animation: cubeSelectedPulse 1s ease-in-out infinite;
+}
+
+.cube-valid-target {
+  outline: 2px dashed var(--accent-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+@keyframes cubeSelectedPulse {
+  0%, 100% { outline-color: var(--accent-gold); }
+  50% { outline-color: var(--accent-red); }
+}

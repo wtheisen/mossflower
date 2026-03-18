@@ -12,39 +12,7 @@ import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
 import useGameState, { PLAYER_COLORS } from './hooks/useGameState';
 
-const styles = {
-  board: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    overflow: 'hidden',
-  },
-  mainArea: {
-    flex: 1,
-    display: 'flex',
-    minHeight: 0,
-    overflow: 'hidden',
-  },
-  leftColumn: {
-    flex: 1,
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    minWidth: 0,
-  },
-  rightColumn: {
-    flexShrink: 0,
-    borderLeft: '2px solid var(--border-card)',
-    overflowY: 'auto',
-  },
-  playerArea: {
-    borderTop: '2px solid var(--border-card)',
-    background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%)',
-    padding: '12px 24px',
-    flexShrink: 0,
-    overflowX: 'auto',
-  },
-};
+/* Layout styles moved to src/layout.css for responsive breakpoints */
 
 const DEFAULT_CONFIG = { playerCount: 2, championIds: ['matthias', 'ralph'], villainId: 'vil-cluny' };
 
@@ -71,6 +39,7 @@ export default function App() {
   const isNight = phase === 'night';
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
   const [draggedCubeType, setDraggedCubeType] = useState(null);
+  const [selectedBandCubeIndex, setSelectedBandCubeIndex] = useState(null);
 
   // Reset viewed player when active player changes
   const viewedPlayer = players[viewedPlayerIndex] ?? activePlayer;
@@ -115,8 +84,16 @@ export default function App() {
       ].find((c) => c.id === action.targetId)
     : null;
 
-  // During dusk, cards accept cube drops
+  // During dusk, cards accept cube drops (drag-and-drop or tap-to-place)
   const cubeDrop = isDusk ? dropCube : undefined;
+
+  // Tap-to-place: when a band cube is selected, clicking a valid target places it
+  const handleTapPlace = (targetId) => {
+    if (selectedBandCubeIndex != null && isDusk) {
+      dropCube(targetId, selectedBandCubeIndex);
+      setSelectedBandCubeIndex(null);
+    }
+  };
 
 
   if (showLanding) {
@@ -124,7 +101,7 @@ export default function App() {
   }
 
   return (
-    <div style={styles.board}>
+    <div className="board">
       <StatusBar
         day={day}
         phase={phase}
@@ -134,8 +111,8 @@ export default function App() {
         championName={activePlayer.champion.name}
       />
 
-      <div style={styles.mainArea}>
-        <div style={styles.leftColumn}>
+      <div className="main-area">
+        <div className="left-column">
           <AdventureRow
             cards={adventureRow}
             deckSize={adventureDeck.length}
@@ -156,10 +133,11 @@ export default function App() {
               isDusk={isDusk}
               draggedCubeType={draggedCubeType}
               playerTokensMap={playerTokensMap}
+              onTapPlace={selectedBandCubeIndex != null ? handleTapPlace : undefined}
             />
           )}
         </div>
-        <div style={styles.rightColumn}>
+        <div className="right-column">
           <HordeArea
             fortress={horde.fortress}
             fortressDeck={horde.fortressDeck}
@@ -174,13 +152,14 @@ export default function App() {
         </div>
       </div>
 
-      <div style={styles.playerArea}>
+      <div className="player-area">
         <PlayerTableau
           champion={viewedPlayer.champion}
           tableau={viewedPlayer.tableau}
           placements={viewedPlayer.placements}
           abilityPlacements={(viewedPlayer.abilityPlacements) ?? {}}
           onCubeDrop={isViewingOwn ? cubeDrop : undefined}
+          onTapPlace={isViewingOwn && selectedBandCubeIndex != null ? handleTapPlace : undefined}
           onReturnCube={isViewingOwn && isNight && nightReturns < 2 ? returnCubeToBag : undefined}
           viewedPlayerIndex={viewedPlayerIndex}
           playerCount={playerCount}
@@ -215,6 +194,8 @@ export default function App() {
               onDiscardFood={discardFood}
               helpPhase={helpPhase}
               onDragCubeType={setDraggedCubeType}
+              selectedCubeIndex={selectedBandCubeIndex}
+              onSelectCube={setSelectedBandCubeIndex}
             />
             : null
           }

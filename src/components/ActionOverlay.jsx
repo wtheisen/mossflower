@@ -26,6 +26,7 @@ const styles = {
     maxHeight: '90vh',
     overflow: 'auto',
     boxShadow: '0 8px 32px rgba(80, 60, 30, 0.25), 0 0 0 1px var(--border-subtle)',
+    flexWrap: 'wrap',
   },
   cardSection: {
     display: 'flex',

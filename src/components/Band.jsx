@@ -134,6 +134,7 @@ export default function Band({
   onDraw, onRecruit, onResolveCombat, onForfeit, onCancel,
   canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight,
   onDiscardFood, helpPhase, onDragCubeType,
+  selectedCubeIndex, onSelectCube,
 }) {
   const inAction = !!action;
   const isCombat = action?.type === 'combat';
@@ -204,6 +205,8 @@ export default function Band({
               draggable={isDusk}
               onDragStart={isDusk ? (e) => handleDragStart(e, i) : undefined}
               onDragEnd={isDusk ? handleDragEnd : undefined}
+              onClick={isDusk && onSelectCube ? () => onSelectCube(selectedCubeIndex === i ? null : i) : undefined}
+              className={isDusk && selectedCubeIndex === i ? 'cube-selected' : ''}
               style={{ cursor: isDusk ? 'grab' : 'default', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
             >
               <CubeChip cubeType={type} />
@@ -212,8 +215,10 @@ export default function Band({
                   onClick={() => onDiscardFood(i)}
                   title="Return food to supply"
                   style={{
-                    fontSize: '9px',
-                    padding: '1px 4px',
+                    fontSize: '12px',
+                    padding: '4px 8px',
+                    minWidth: '28px',
+                    minHeight: '28px',
                     border: '1px solid var(--border-card)',
                     borderRadius: '4px',
                     background: 'var(--bg-elevated)',
@@ -221,6 +226,9 @@ export default function Band({
                     cursor: 'pointer',
                     lineHeight: 1,
                     fontFamily: 'var(--font-display)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   ×

@@ -356,7 +356,7 @@ export default function LandingPage({ onPlay }) {
             </div>
 
             {/* Two-column layout: Champions | Horde */}
-            <div style={{
+            <div className="setup-grid" style={{
               display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px',
               marginBottom: '24px', alignItems: 'start',
             }}>

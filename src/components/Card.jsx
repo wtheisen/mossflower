@@ -190,7 +190,7 @@ const styles = {
   },
 };
 
-export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, playerTokens }) {
+export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, onTapPlace, playerTokens }) {
   const borderColor = TYPE_COLORS[card.type] ?? 'var(--border-card)';
   const bgTint = TYPE_BG[card.type] ?? 'transparent';
   const scene = ART_SCENES[card.type] ?? ART_SCENES.hero;
@@ -198,7 +198,7 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
   const totalSlots = card.tableauSlots ?? card.slots ?? 0;
   const affinities = card.affinities ?? (card.affinity ? [card.affinity] : []);
 
-  const interactive = !!onClick;
+  const interactive = !!onClick || !!onTapPlace;
   const droppable = !!onCubeDrop;
 
   const handleDragOver = (e) => {
@@ -218,9 +218,10 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
 
   return (
     <div
-      onClick={onClick}
+      onClick={onTapPlace ? () => onTapPlace(card.id) : onClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      className={onTapPlace ? 'cube-valid-target' : ''}
       style={{
         ...styles.card,
         width: wide ? 'calc(var(--card-width) * 2 + 12px)' : 'var(--card-width)',

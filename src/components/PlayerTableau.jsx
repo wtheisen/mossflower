@@ -23,12 +23,17 @@ const styles = {
   },
   navArrow: {
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '18px',
     color: 'var(--text-secondary)',
     background: 'none',
     border: '1px solid var(--border-card)',
-    borderRadius: '4px',
-    padding: '2px 8px',
+    borderRadius: '6px',
+    padding: '4px 12px',
+    minWidth: '44px',
+    minHeight: '44px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     fontFamily: 'var(--font-display)',
     fontWeight: 700,
     lineHeight: 1,
@@ -229,7 +234,7 @@ function isValidDuskTarget(cubeType, targetType) {
   return true;
 }
 
-export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType }) {
+export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onTapPlace, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType }) {
   const hasAbilities = champion.abilities && champion.abilities.length > 0;
   const dragging = isDusk && draggedCubeType;
 
@@ -321,6 +326,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                         }}
                         onDragOver={handleAbilityDragOver}
                         onDrop={(e) => handleAbilityDrop(ability.id, e)}
+                        onClick={onTapPlace ? () => onTapPlace(ability.id) : undefined}
                       >
                         <div style={styles.abilityName}>{ability.name}</div>
                         <div style={styles.abilityDesc}>{ability.description}</div>
@@ -347,6 +353,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                 filledSlots={placements[champion.id] ?? []}
                 wide
                 onCubeDrop={onCubeDrop}
+                onTapPlace={onTapPlace}
                 onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(champion.id, slotIdx) : undefined}
               />
             </div>
@@ -368,6 +375,7 @@ export default function PlayerTableau({ champion, tableau, placements = {}, abil
                   filledSlots={placements[hero.id] ?? []}
                   wide={hero.affinity === 'badger'}
                   onCubeDrop={onCubeDrop}
+                  onTapPlace={onTapPlace}
                   onSlotClick={onReturnCube ? (slotIdx) => onReturnCube(hero.id, slotIdx) : undefined}
                 />
               </div>
