@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import StatusBar from './components/StatusBar';
 import AdventureRow from './components/AdventureRow';
@@ -42,6 +42,9 @@ export default function App() {
   const isDusk = phase === 'dusk';
   const isNight = phase === 'night';
   const [viewedPlayerIndex, setViewedPlayerIndex] = useState(activePlayerIndex);
+  useEffect(() => {
+    setViewedPlayerIndex(activePlayerIndex);
+  }, [activePlayerIndex]);
   const [draggedCubeType, setDraggedCubeType] = useState(null);
   const [selectedBandCubeIndex, setSelectedBandCubeIndex] = useState(null);
   const [expandedCard, setExpandedCard] = useState(null);
