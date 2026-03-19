@@ -1,576 +1,61 @@
-import { useState, useCallback } from 'react';
-import { CHAMPIONS, BASE_LOCATIONS, expandStartingBag, buildAdventure, buildHorde } from '../data/cards';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { BUST_TYPES, shuffleArray, STORAGE_KEY } from '../game/constants';
+import { getActivePlayer, patchActivePlayer, patchPlayer, countVermin } from '../game/helpers';
+import {
+  getPlayerBustThreshold, evaluateDrawTriggers, calculatePower,
+  getVerminReduction, getCombatWinFood, createAbilityCtx,
+} from '../game/abilities';
+import {
+  checkGameOver, advanceDayTurn, advanceDusk, advanceNight,
+  spreadVermin, countAction,
+} from '../game/phases';
+import { buildInitialState } from '../game/setup';
 import { ABILITIES } from '../data/abilities';
 
-const BUST_TYPES = new Set(['inexperience', 'vermin', 'wound']);
-const CRITTER_TYPES = new Set(['mouse', 'squirrel', 'hare', 'otter', 'mole', 'badger']);
-const BASE_BUST_THRESHOLD = 3;
+// Re-export for backward compatibility
+export { PLAYER_COLORS } from '../game/constants';
 
-/** Count combat strength from a list of cube type strings. Badgers count as 2. */
-function combatStrength(cubes) {
-  let strength = 0;
-  for (const c of cubes) {
-    if (c === 'badger') strength += 2;
-    else if (CRITTER_TYPES.has(c)) strength += 1;
-  }
-  return strength;
+// ── localStorage persistence ──────────────────────────
+
+function saveGame(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
 }
 
-/** Count vermin in a list of cube type strings. */
-function countVermin(cubes) {
-  return cubes.filter((c) => c === 'vermin').length;
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
 }
 
-/** Expand a critters map like { mouse: 2, squirrel: 1 } into [{type:'mouse'},{type:'mouse'},{type:'squirrel'}] */
-function expandCritters(critters) {
-  if (!critters) return [];
-  const result = [];
-  for (const [type, count] of Object.entries(critters)) {
-    for (let i = 0; i < count; i++) result.push({ type });
-  }
-  return result;
+export function hasSavedGame() {
+  const saved = loadGame();
+  return saved != null && saved.phase != null;
 }
 
-/** Build initial cardSlots for adventure row heroes (pre-filled with critters) */
-function initCardSlots(adventureRow) {
-  const slots = {};
-  for (const card of adventureRow) {
-    if (card.type === 'hero' && card.critters) {
-      slots[card.id] = expandCritters(card.critters);
-    }
-  }
-  return slots;
+export function clearSavedGame() {
+  localStorage.removeItem(STORAGE_KEY);
 }
 
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// ── Champion ability helpers ──────────────────────────
-
-/** Get the player's bust threshold (base 3 + Courage of Martin placements). */
-function getPlayerBustThreshold(p) {
-  let threshold = BASE_BUST_THRESHOLD;
-  const abilities = p.champion.abilities;
-  if (!abilities) return threshold;
-  for (const ability of abilities) {
-    if (ability.effect === 'raiseBustThreshold') {
-      const placed = (p.abilityPlacements ?? {})[ability.id] ?? [];
-      threshold += placed.length;
-    }
-  }
-  return threshold;
-}
-
-/** Check if a drawn cube matches an ability's trigger. */
-function matchesTrigger(trigger, drawnCube) {
-  if (trigger === 'onDrawMouse') return drawnCube === 'mouse';
-  if (trigger === 'onDrawCritter') return CRITTER_TYPES.has(drawnCube);
-  return false;
-}
-
-/** Evaluate champion ability triggers after drawing a cube. */
-function evaluateDrawTriggers(player, drawnCube) {
-  const abilities = player.champion.abilities;
-  if (!abilities) return { bagAdds: [], messages: [] };
-
-  const result = { bagAdds: [], messages: [] };
-  const abilityPlacements = player.abilityPlacements ?? {};
-
-  for (const ability of abilities) {
-    if (ability.trigger === 'passive') continue;
-    const placed = abilityPlacements[ability.id] ?? [];
-    if (placed.length === 0) continue;
-    if (!matchesTrigger(ability.trigger, drawnCube)) continue;
-
-    switch (ability.effect) {
-      case 'amplifyMice':
-        result.messages.push(`${ability.name}: mice worth ${1 + placed.length} power each!`);
-        break;
-      case 'addFoodPerMouse':
-        for (let i = 0; i < placed.length; i++) result.bagAdds.push('food');
-        result.messages.push(`${ability.name}: +${placed.length} food to bag!`);
-        break;
-      case 'allyPower':
-        result.messages.push(`${ability.name}: +${placed.length} power!`);
-        break;
-    }
-  }
-
-  return result;
-}
-
-/**
- * Calculate total power from a player's band + champion ability bonuses.
- * Base: critter cubes (badger=2, others=1).
- * Strength in Numbers: mice × placed count bonus.
- * Rallying Cry: mice drawn × placed critter count.
- */
-function calculatePower(player) {
-  const band = player.band;
-  let power = combatStrength(band);
-
-  // Champion ability bonuses
-  const abilities = player.champion.abilities;
-  if (abilities) {
-    const abilityPlacements = player.abilityPlacements ?? {};
-    for (const ability of abilities) {
-      const placed = abilityPlacements[ability.id] ?? [];
-      if (placed.length === 0) continue;
-
-      switch (ability.effect) {
-        case 'amplifyMice': {
-          const miceInBand = band.filter((c) => c === 'mouse').length;
-          power += miceInBand * placed.length;
-          break;
-        }
-        case 'allyPower': {
-          const miceDrawn = band.filter((c) => c === 'mouse').length;
-          power += miceDrawn * placed.length;
-          break;
-        }
-      }
-    }
-  }
-
-  // Hero combat bonuses from tableau placements
-  const placements = player.placements ?? {};
-  for (const [cardId, placed] of Object.entries(placements)) {
-    if (placed.length === 0) continue;
-    const heroAbility = ABILITIES[cardId];
-    if (heroAbility?.combatBonus) {
-      power += heroAbility.combatBonus(placed);
-    }
-  }
-
-  return power;
-}
-
-/** Get total vermin reduction from hero abilities (e.g. Guerrilla Scout). */
-function getVerminReduction(player) {
-  let reduction = 0;
-  const placements = player.placements ?? {};
-  for (const [cardId, placed] of Object.entries(placements)) {
-    if (placed.length === 0) continue;
-    const heroAbility = ABILITIES[cardId];
-    if (heroAbility?.combatVerminReduction) {
-      reduction += heroAbility.combatVerminReduction(placed);
-    }
-  }
-  return reduction;
-}
-
-/** Get food bonus from hero abilities on combat win (e.g. Mossflower Forager). */
-function getCombatWinFood(player) {
-  let food = 0;
-  const placements = player.placements ?? {};
-  for (const [cardId, placed] of Object.entries(placements)) {
-    if (placed.length === 0) continue;
-    const heroAbility = ABILITIES[cardId];
-    if (heroAbility?.onCombatWin) {
-      food += heroAbility.onCombatWin(placed);
-    }
-  }
-  return food;
-}
-
-/** Check if a cube type passes an ability's slot filter. */
-function passesSlotFilter(slotFilter, cubeType) {
-  switch (slotFilter) {
-    case 'mouse': return cubeType === 'mouse';
-    case 'food': return cubeType === 'food';
-    case 'non-mouse-critter': return CRITTER_TYPES.has(cubeType) && cubeType !== 'mouse';
-    case 'critter': return CRITTER_TYPES.has(cubeType);
-    case 'any': return true;
-    default: return true;
-  }
-}
-
-// ── Player helpers ──────────────────────────────────
-
-export const PLAYER_COLORS = ['#c49a2a', '#5b82a6', '#8a6aaa', '#a05040'];
-
-function createPlayer(index, championId) {
-  const champion = CHAMPIONS.find(c => c.id === championId) ?? CHAMPIONS[0];
-  const bag = shuffleArray(expandStartingBag(champion.startingBag));
-  return {
-    id: index,
-    champion,
-    tableau: [],
-    placements: {},
-    abilityPlacements: {},
-    bag,
-    band: [],
-    action: null,
-    bustCount: 0,
-    busted: false,
-    selectedCubeIndex: null,
-    nightReturns: 0,
-    actionsUsed: 0,
-    passed: false,
-    currentLocation: null,
-    drawBonuses: { power: 0, bagAdds: [], messages: [] },
-    // Helping Hands state
-    helpBand: [],
-    helpBustCount: 0,
-    helpBusted: false,
-  };
-}
-
-function patchPlayer(s, playerIndex, patch) {
-  const players = [...s.players];
-  players[playerIndex] = { ...players[playerIndex], ...patch };
-  return { ...s, players };
-}
-
-function buildInitialState(config) {
-  const { playerCount, championIds, villainId } = config;
-  const players = [];
-  for (let i = 0; i < playerCount; i++) {
-    players.push(createPlayer(i, championIds[i]));
-  }
-  const horde = buildHorde(villainId);
-  const { adventureRow, adventureDeck } = buildAdventure(shuffleArray);
-  const cardSlots = initCardSlots(adventureRow);
-
-  // Initialize fortress vermin
-  if (horde.fortress) {
-    cardSlots[horde.fortress.id] = Array.from(
-      { length: horde.fortress.startingVermin },
-      () => ({ type: 'vermin' }),
-    );
-  }
-  // Initialize villain vermin
-  if (horde.villain) {
-    cardSlots[horde.villain.id] = Array.from(
-      { length: horde.villain.startingVermin },
-      () => ({ type: 'vermin' }),
-    );
-  }
-
-  return {
-    phase: 'day',
-    day: 1,
-    conquest: 2,
-    playerCount,
-    activePlayerIndex: 0,
-    helpPhase: false,
-    players,
-    gameResult: null,
-
-    // Shared board
-    adventureRow,
-    discoveredLocations: [...BASE_LOCATIONS],
-    horde,
-    adventureDeck: shuffleArray(adventureDeck),
-    cardSlots,
-
-    message: null,
-  };
-}
-
-/** Check if conquest >= 10 → loss. */
-function checkGameOver(s) {
-  if (s.gameResult) return s;
-  if (s.conquest >= 10) {
-    return { ...s, gameResult: 'loss', message: 'Conquest reached 10 — Mossflower has fallen.' };
-  }
-  return s;
-}
-
-function getActivePlayer(s) {
-  return s.players[s.activePlayerIndex];
-}
-
-function patchActivePlayer(s, patch) {
-  const players = [...s.players];
-  players[s.activePlayerIndex] = { ...players[s.activePlayerIndex], ...patch };
-  return { ...s, players };
-}
-
-// ── Turn advancement ────────────────────────────────
-
-/** Find next unpassed player index after current, or -1 if all passed. */
-function nextUnpassedPlayer(s) {
-  const n = s.playerCount;
-  for (let offset = 1; offset <= n; offset++) {
-    const idx = (s.activePlayerIndex + offset) % n;
-    if (!s.players[idx].passed) return idx;
-  }
-  return -1;
-}
-
-/** Advance to the next unpassed player during day, or trigger dusk if all passed. */
-function advanceDayTurn(s) {
-  const next = nextUnpassedPlayer(s);
-  if (next === -1) {
-    return startDuskPhase(s);
-  }
-  return { ...s, activePlayerIndex: next, message: `Player ${next + 1}'s turn.` };
-}
-
-/** Find first player with band cubes for dusk, or skip to night if none. */
-function startDuskPhase(s) {
-  for (let i = 0; i < s.playerCount; i++) {
-    if (s.players[i].band.length > 0) {
-      return {
-        ...s,
-        phase: 'dusk',
-        activePlayerIndex: i,
-        message: s.playerCount > 1
-          ? `Dusk — Player ${i + 1}, place your cubes.`
-          : 'Dusk — select a cube from your band, then click a card to place it.',
-      };
-    }
-  }
-  // No player has band cubes — skip straight to night
-  return enterNightAllPlayers(s);
-}
-
-/** Sequential advance for dusk: find next player with band cubes after current. */
-function advanceDusk(s) {
-  for (let offset = 1; offset < s.playerCount; offset++) {
-    const idx = (s.activePlayerIndex + offset) % s.playerCount;
-    // Only advance forward; if we wrap past 0 we're done
-    if (idx <= s.activePlayerIndex) break;
-    if (s.players[idx].band.length > 0) {
-      return {
-        ...s,
-        activePlayerIndex: idx,
-        message: s.playerCount > 1
-          ? `Dusk — Player ${idx + 1}, place your cubes.`
-          : 'Dusk — place your cubes.',
-      };
-    }
-  }
-  // All remaining players done → night
-  return enterNightAllPlayers(s);
-}
-
-/** Simple sequential advance for night. */
-function advanceNight(s) {
-  const next = s.activePlayerIndex + 1;
-  if (next < s.playerCount) {
-    return {
-      ...s,
-      activePlayerIndex: next,
-      message: s.playerCount > 1
-        ? `Night — Player ${next + 1}, return up to 2 cubes.`
-        : null,
-    };
-  }
-  // All players done → morning
-  return resolveNightEnd(s);
-}
-
-/**
- * Distributes `count` vermin round-robin across adventure row + discovered locations.
- */
-function spreadVermin(state, count) {
-  const targets = [...state.adventureRow, ...state.discoveredLocations]
-    .filter((c) => c.type === 'location' || c.type === 'hero');
-
-  const cardSlots = {};
-  for (const [k, v] of Object.entries(state.cardSlots)) {
-    cardSlots[k] = [...v];
-  }
-
-  if (targets.length === 0 || count <= 0) {
-    return { cardSlots, conquestDelta: 0, log: [] };
-  }
-
-  const log = [];
-  let hadOverflow = false;
-
-  for (let i = 0; i < count; i++) {
-    const target = targets[i % targets.length];
-    const slots = cardSlots[target.id] ?? [];
-
-    if (target.type === 'location') {
-      const workerIdx = slots.findIndex((c) => c.type !== 'vermin');
-      if (workerIdx !== -1) {
-        const removed = slots.splice(workerIdx, 1)[0];
-        cardSlots[target.id] = slots;
-        log.push(`${target.name}: worker (${removed.type}) absorbed a vermin`);
-        continue;
-      }
-    }
-
-    const limit = target.verminLimit ?? target.slots ?? Infinity;
-    const currentVermin = (cardSlots[target.id] ?? []).filter((c) => c.type === 'vermin').length;
-    if (currentVermin >= limit) {
-      hadOverflow = true;
-      log.push(`${target.name}: vermin overflow`);
-      continue;
-    }
-
-    if (!cardSlots[target.id]) cardSlots[target.id] = [];
-    cardSlots[target.id].push({ type: 'vermin' });
-    log.push(`${target.name}: +1 vermin`);
-  }
-
-  const conquestDelta = hadOverflow ? 1 : 0;
-  return { cardSlots, conquestDelta, log };
-}
-
-function spawnNightVermin(state) {
-  const { cardSlots, conquestDelta, log } = spreadVermin(state, state.conquest);
-  const newConquest = state.conquest + conquestDelta;
-  const message = `Night: spawned ${state.conquest} vermin. Conquest now ${newConquest}/10. ${log.join('; ')}.`;
-  return { cardSlots, conquest: newConquest, nightMessage: message };
-}
-
-function applyVillainNight(state, conquest) {
-  const villain = state.horde?.villain;
-  if (!villain) return { conquest, villainMsg: '' };
-
-  switch (villain.id) {
-    case 'vil-cluny':
-      return { conquest: conquest + 1, villainMsg: `${villain.name}: +1 conquest.` };
-    case 'vil-tsarmina':
-      return { conquest: conquest + 1, villainMsg: `${villain.name}: +1 conquest.` };
-    default:
-      return { conquest, villainMsg: '' };
-  }
-}
-
-/** Enter night: shared vermin spawn + villain, reset all players' nightReturns. */
-function enterNightAllPlayers(s) {
-  const spawn = spawnNightVermin(s);
-  const villain = applyVillainNight(s, spawn.conquest);
-  const messages = [spawn.nightMessage, villain.villainMsg].filter(Boolean).join(' ');
-
-  let result = {
-    ...s,
-    phase: 'night',
-    activePlayerIndex: 0,
-    cardSlots: spawn.cardSlots,
-    conquest: villain.conquest,
-    message: messages,
-  };
-
-  // Reset nightReturns for all players
-  const players = result.players.map((p) => ({ ...p, nightReturns: 0 }));
-  result.players = players;
-
-  return checkGameOver(result);
-}
-
-/** Morning resolution: card rotation, reveal, reset all players for new day. */
-function resolveNightEnd(s) {
-  const newRow = [...s.adventureRow];
-  const newDeck = [...s.adventureDeck];
-  const newCardSlots = { ...s.cardSlots };
-  let newConquest = s.conquest;
-  const log = [];
-
-  if (newRow.length > 0) {
-    const removed = newRow.shift();
-    const removedSlots = newCardSlots[removed.id] ?? [];
-    const verminCount = removedSlots.filter((c) => c.type === 'vermin').length;
-    delete newCardSlots[removed.id];
-
-    if (verminCount > 0 && removed.type !== 'villain' && removed.type !== 'fortress') {
-      newConquest += verminCount;
-      log.push(`${removed.name} removed with ${verminCount} vermin → conquest +${verminCount}`);
-    } else if (verminCount > 0) {
-      log.push(`${removed.name} removed (vermin discarded)`);
-    } else {
-      log.push(`${removed.name} removed`);
-    }
-  }
-
-  if (newDeck.length > 0) {
-    const revealed = newDeck.pop();
-    newRow.push(revealed);
-    if (revealed.type === 'hero' && revealed.critters) {
-      newCardSlots[revealed.id] = expandCritters(revealed.critters);
-    }
-    log.push(`${revealed.name} revealed`);
-  }
-
-  const morning = log.length > 0 ? `Morning: ${log.join('. ')}.` : '';
-
-  // Reset all players for new day
-  const players = s.players.map((p) => ({
-    ...p,
-    nightReturns: 0,
-    actionsUsed: 0,
-    passed: false,
-  }));
-
-  return checkGameOver({
-    ...s,
-    phase: 'day',
-    day: s.day + 1,
-    activePlayerIndex: 0,
-    players,
-    adventureRow: newRow,
-    adventureDeck: newDeck,
-    cardSlots: newCardSlots,
-    conquest: newConquest,
-    message: `Day ${s.day + 1} begins. ${morning}`,
-  });
-}
-
-/** After completing an action, increment actionsUsed and auto-pass if >= 2. */
-function countAction(s) {
-  const p = getActivePlayer(s);
-  const actionsUsed = p.actionsUsed + 1;
-  const passed = actionsUsed >= 2;
-  let result = patchActivePlayer(s, { actionsUsed, passed });
-  if (passed) {
-    result = advanceDayTurn(result);
-  }
-  return result;
-}
-
-/**
- * Creates a mutable ctx object that ability functions use to manipulate state.
- */
-function createAbilityCtx(state) {
-  const p = getActivePlayer(state);
-  const bag = [...p.bag];
-  const band = [...p.band];
-  let message = state.message;
-
-  return {
-    state,
-    addToBand(cubeType) { band.push(cubeType); },
-    removeFromBand(cubeType) {
-      const idx = band.indexOf(cubeType);
-      if (idx === -1) return false;
-      band.splice(idx, 1);
-      return true;
-    },
-    addToBag(cubeType) { bag.push(cubeType); },
-    removeFromBag(cubeType) {
-      const idx = bag.indexOf(cubeType);
-      if (idx === -1) return false;
-      bag.splice(idx, 1);
-      return true;
-    },
-    drawFromBag() {
-      if (bag.length === 0) return null;
-      const idx = Math.floor(Math.random() * bag.length);
-      const [cube] = bag.splice(idx, 1);
-      band.push(cube);
-      return cube;
-    },
-    setMessage(msg) { message = msg; },
-    _apply() {
-      return { playerPatch: { bag: shuffleArray(bag), band }, message };
-    },
-  };
-}
+// ── Hook ──────────────────────────────────────────────
 
 export default function useGameState(config) {
   const [state, setState] = useState(() => buildInitialState(config));
+  const mountedRef = useRef(false);
+
+  // Auto-save on state changes (skip initial mount)
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    saveGame(state);
+  }, [state]);
+
+  const resumeGame = useCallback(() => {
+    const saved = loadGame();
+    if (saved) setState(saved);
+  }, []);
 
   // ── Day Actions ─────────────────────────────────────
 
@@ -647,7 +132,6 @@ export default function useGameState(config) {
         };
       }
 
-      // Infirmary triggers vermin spread equal to current conquest
       if (cardId === 'redwall-infirmary' && result.conquest > 0) {
         const spread = spreadVermin(result, result.conquest);
         result = {
@@ -660,9 +144,7 @@ export default function useGameState(config) {
         if (result.gameResult) return result;
       }
 
-      // Location action completes immediately — count it
       result = countAction(result);
-
       return result;
     });
   }, []);
@@ -685,16 +167,13 @@ export default function useGameState(config) {
       const bustThreshold = getPlayerBustThreshold(p);
       const busted = newBustCount >= bustThreshold;
 
-      // Evaluate champion ability triggers
       const playerForTriggers = { ...p, band: newBand };
       const triggers = evaluateDrawTriggers(playerForTriggers, drawn);
 
-      // Add permanent food from Redwall Provisions
       for (const cubeType of triggers.bagAdds) {
         newBag.push(cubeType);
       }
 
-      // Accumulate draw bonuses
       const prevBonuses = p.drawBonuses ?? { power: 0, bagAdds: [], messages: [] };
       const newDrawBonuses = {
         power: prevBonuses.power,
@@ -702,14 +181,12 @@ export default function useGameState(config) {
         messages: [...prevBonuses.messages, ...triggers.messages],
       };
 
-      // Calculate current power
       const power = calculatePower({ ...p, band: newBand, abilityPlacements: p.abilityPlacements });
       const triggerMsg = triggers.messages.length > 0 ? ' ' + triggers.messages.join(' ') : '';
 
       let message;
       if (isCombat && busted) {
-        // Combat bust — auto-resolve as a loss
-        const { targetId, combatTarget } = p.action;
+        const { targetId } = p.action;
         const newCardSlots = { ...s.cardSlots };
         const existing = newCardSlots[targetId] ?? [];
         const verminToReturn = newBand.filter((c) => c === 'vermin').length;
@@ -770,7 +247,6 @@ export default function useGameState(config) {
       if (!p.action) return s;
       if (s.playerCount < 2) return { ...s, message: 'No other players to help.' };
       if (s.helpPhase) return s;
-      // Reset all helpers' helpBand state
       const players = s.players.map((pl, i) =>
         i === s.activePlayerIndex ? pl : { ...pl, helpBand: [], helpBustCount: 0, helpBusted: false },
       );
@@ -818,7 +294,6 @@ export default function useGameState(config) {
       const helper = s.players[helperIndex];
       if (!helper || helper.helpBand.length === 0) return s;
 
-      // Transfer critter/food cubes to active player's band. Inexperience stays with helper (goes to their bag).
       const toTransfer = [];
       const toReturn = [];
       for (const cube of helper.helpBand) {
@@ -851,7 +326,6 @@ export default function useGameState(config) {
   const skipHelp = useCallback(() => {
     setState((s) => {
       if (!s.helpPhase) return s;
-      // Auto-transfer any pending helper cubes
       let result = { ...s };
       for (let i = 0; i < s.playerCount; i++) {
         if (i === s.activePlayerIndex) continue;
@@ -884,7 +358,6 @@ export default function useGameState(config) {
       const target = s.adventureRow.find((c) => c.id === p.action.targetId);
       if (!target) return s;
 
-      // Check tableau slot capacity (badger heroes occupy 2 slots)
       const usedSlots = p.tableau.reduce((sum, h) => sum + (h.affinity === 'badger' ? 2 : 1), 0);
       const slotsNeeded = target.affinity === 'badger' ? 2 : 1;
       const maxSlots = p.champion.tableauSlots ?? 5;
@@ -892,13 +365,11 @@ export default function useGameState(config) {
         return { ...s, message: `Not enough tableau space! Need ${slotsNeeded} slot(s), have ${maxSlots - usedSlots} free.` };
       }
 
-      // Recruit gates on food only
       const foodCount = p.band.filter((c) => c === 'food').length;
       if (foodCount < target.cost) {
         return { ...s, message: `Need ${target.cost} food to recruit. Have ${foodCount}. Keep drawing or cancel.` };
       }
 
-      // Power gives inexperience removal: total power / 3
       const power = calculatePower(p);
       const inexperienceToRemove = Math.floor(power / 3);
 
@@ -908,7 +379,6 @@ export default function useGameState(config) {
         return true;
       });
 
-      // Remove inexperience from bag
       const newBag = [...p.bag];
       let removed = 0;
       for (let i = newBag.length - 1; i >= 0 && removed < inexperienceToRemove; i--) {
@@ -918,7 +388,6 @@ export default function useGameState(config) {
         }
       }
 
-      // Transfer cubes from adventure row card to player's placements
       const heroSlots = s.cardSlots[target.id] ?? [];
       const newCardSlots = { ...s.cardSlots };
       delete newCardSlots[target.id];
@@ -975,7 +444,6 @@ export default function useGameState(config) {
         drawBonuses: { power: 0, bagAdds: [], messages: [] },
       };
 
-      // Always clear helpPhase when resolving combat
       s = { ...s, helpPhase: false };
 
       let result;
@@ -983,7 +451,6 @@ export default function useGameState(config) {
         const newBand = p.band.filter((c) => c !== 'vermin');
 
         if (combatTarget === 'villain') {
-          // Villain defeated → win!
           const overkill = power - verm;
           const conquestReduction = Math.max(1, overkill);
           const newConquest = Math.max(0, s.conquest - conquestReduction);
@@ -995,7 +462,6 @@ export default function useGameState(config) {
         }
 
         if (combatTarget === 'fortress') {
-          // Fortress defeated → pop next or mark cleared
           const overkill = power - verm;
           const conquestReduction = Math.max(1, overkill);
           const newConquest = Math.max(0, s.conquest - conquestReduction);
@@ -1026,7 +492,6 @@ export default function useGameState(config) {
           return result;
         }
 
-        // Normal location combat win
         const overkill = power - verm;
         const conquestReduction = Math.max(1, overkill);
         const newConquest = Math.max(0, s.conquest - conquestReduction);
@@ -1046,7 +511,6 @@ export default function useGameState(config) {
         result = patchActivePlayer(result, { band: newBand, ...clearAction });
         result.message = `Victory at ${locName}! Power ${power} vs ${verm} vermin.${reductionNote}${overkillNote} (now ${newConquest}).${foodNote}`;
       } else {
-        // Combat loss
         const newCardSlots = { ...s.cardSlots };
         const existing = newCardSlots[targetId] ?? [];
         const verminToReturn = p.band.filter((c) => c === 'vermin').length;
@@ -1075,7 +539,6 @@ export default function useGameState(config) {
       if (!p.action || p.action.type !== 'combat') return s;
       const { targetId } = p.action;
 
-      // Same logic as combat loss: vermin return to card, conquest +1
       const newCardSlots = { ...s.cardSlots };
       const existing = newCardSlots[targetId] ?? [];
       const verminToReturn = p.band.filter((c) => c === 'vermin').length;
@@ -1120,7 +583,6 @@ export default function useGameState(config) {
         return { ...s, message: 'Salamandastron Veteran: need 2 matching cubes placed.' };
       }
 
-      // Find the target location and check it has vermin
       const loc = s.discoveredLocations.find((c) => c.id === targetLocationId)
         || s.adventureRow.find((c) => c.id === targetLocationId);
       if (!loc) return { ...s, message: 'Invalid target location.' };
@@ -1131,7 +593,6 @@ export default function useGameState(config) {
         return { ...s, message: `${loc.name} has no vermin to remove.` };
       }
 
-      // Spend 2 matching cubes from the Veteran's placements
       const counts = {};
       for (const c of placed) {
         counts[c.type] = (counts[c.type] ?? 0) + 1;
@@ -1144,14 +605,12 @@ export default function useGameState(config) {
         return { ...s, message: 'Salamandastron Veteran: no matching pair to spend.' };
       }
 
-      // Remove 2 of spentType from placements
       let toRemove = 2;
       const newPlaced = placed.filter((c) => {
         if (c.type === spentType && toRemove > 0) { toRemove--; return false; }
         return true;
       });
 
-      // Remove 1 vermin from target location
       const newSlots = [...slots];
       newSlots.splice(verminIdx, 1);
 
@@ -1211,13 +670,6 @@ export default function useGameState(config) {
 
       const cubeType = p.band[cubeIndex];
 
-      // ── Dusk placement rules ──
-      // Inexperience MUST go on champion (card or ability slots only)
-      // Wound/vermin MUST go on tableau cards (champion or heroes), NOT ability slots or locations
-      // Critters can go on tableau or locations
-      // Food can go on tableau, locations, or be discarded (via discardFood)
-
-      // Check if it's a location (worker placement)
       const loc = s.discoveredLocations.find((c) => c.id === cardId);
       if (loc) {
         if (p.currentLocation !== cardId) {
@@ -1248,10 +700,8 @@ export default function useGameState(config) {
         return result;
       }
 
-      // Check if it's a champion ability slot
       const ability = p.champion.abilities?.find((a) => a.id === cardId);
       if (ability) {
-        // Wounds/vermin cannot go in ability slots
         if (cubeType === 'wound' || cubeType === 'vermin') {
           return { ...s, message: `${cubeType} must go on a tableau card, not an ability slot.` };
         }
@@ -1276,12 +726,10 @@ export default function useGameState(config) {
         return result;
       }
 
-      // Otherwise it's a tableau card or champion (without abilities)
       const isChampion = p.champion.id === cardId;
       const tableauCard = isChampion ? p.champion : p.tableau.find((c) => c.id === cardId);
       if (!tableauCard) return { ...s, message: 'Invalid target.' };
 
-      // Inexperience MUST go on the champion card
       if (cubeType === 'inexperience' && !isChampion) {
         return { ...s, message: 'Inexperience must be placed on your Champion.' };
       }
@@ -1337,12 +785,10 @@ export default function useGameState(config) {
       const p = getActivePlayer(s);
       if (p.nightReturns >= 2) return { ...s, message: 'Already returned 2 cubes this night.' };
 
-      // Check hero/champion placements first
       let currentPlacements = p.placements[cardId];
       let isAbility = false;
 
       if (!currentPlacements || slotIndex < 0 || slotIndex >= (currentPlacements?.length ?? 0)) {
-        // Check ability placements
         currentPlacements = (p.abilityPlacements ?? {})[cardId];
         if (!currentPlacements || slotIndex < 0 || slotIndex >= currentPlacements.length) return s;
         isAbility = true;
@@ -1352,16 +798,14 @@ export default function useGameState(config) {
       const returns = p.nightReturns + 1;
       const newBag = [...p.bag, cube.type];
 
-      let patch;
       if (isAbility) {
         const newAbilityPlacements = {
           ...(p.abilityPlacements ?? {}),
           [cardId]: currentPlacements.filter((_, i) => i !== slotIndex),
         };
-        // Find ability name
         const abilityDef = p.champion.abilities?.find((a) => a.id === cardId);
         const cardName = abilityDef?.name ?? cardId;
-        patch = { abilityPlacements: newAbilityPlacements, bag: shuffleArray(newBag), nightReturns: returns };
+        const patch = { abilityPlacements: newAbilityPlacements, bag: shuffleArray(newBag), nightReturns: returns };
         let result = patchActivePlayer(s, patch);
         result.message = `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`;
         return result;
@@ -1373,7 +817,7 @@ export default function useGameState(config) {
         const cardName = p.champion.id === cardId
           ? p.champion.name
           : p.tableau.find((c) => c.id === cardId)?.name ?? cardId;
-        patch = { placements: newPlacements, bag: shuffleArray(newBag), nightReturns: returns };
+        const patch = { placements: newPlacements, bag: shuffleArray(newBag), nightReturns: returns };
         let result = patchActivePlayer(s, patch);
         result.message = `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`;
         return result;
@@ -1396,7 +840,6 @@ export default function useGameState(config) {
       const fortress = s.horde.fortress;
       if (!fortress || fortress.id !== fortressId) return s;
 
-      // Move vermin from fortress cardSlots → player's bag
       const slots = s.cardSlots[fortressId] ?? [];
       const verminCount = slots.filter((c) => c.type === 'vermin').length;
       if (verminCount === 0) return { ...s, message: `${fortress.name} has no vermin — already cleared!` };
@@ -1457,10 +900,12 @@ export default function useGameState(config) {
   }, []);
 
   const startGame = useCallback((newConfig) => {
+    clearSavedGame();
     setState(buildInitialState(newConfig));
   }, []);
 
   const restartGame = useCallback(() => {
+    clearSavedGame();
     setState(buildInitialState(config));
   }, [config]);
 
@@ -1483,6 +928,7 @@ export default function useGameState(config) {
     startVillainCombat,
     startGame,
     restartGame,
+    resumeGame,
     requestHelp,
     helperDrawCube,
     helperDone,

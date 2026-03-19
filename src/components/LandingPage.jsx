@@ -55,13 +55,13 @@ const styles = {
     textAlign: 'center',
     zIndex: 2,
     padding: '0 32px',
-    maxHeight: '90vh',
-    overflowY: 'auto',
+    maxWidth: '900px',
+    width: '100%',
   },
 
   title: {
     fontFamily: 'var(--font-display)',
-    fontSize: 'clamp(3rem, 8vw, 5rem)',
+    fontSize: 'clamp(2.5rem, 8vw, 5rem)',
     fontWeight: 700,
     color: 'var(--text-primary)',
     lineHeight: 1,
@@ -77,14 +77,14 @@ const styles = {
     fontStyle: 'italic',
     color: 'var(--text-secondary)',
     letterSpacing: '0.15em',
-    marginBottom: '24px',
+    marginBottom: '20px',
   },
 
   divider: {
     width: '120px',
     height: '2px',
     background: 'linear-gradient(90deg, transparent, var(--accent-gold), transparent)',
-    marginBottom: '24px',
+    marginBottom: '20px',
   },
 
   sectionLabel: {
@@ -107,7 +107,7 @@ const styles = {
     background: 'linear-gradient(135deg, #6b4226 0%, #8b5e3c 40%, #a0522d 100%)',
     border: '2px solid rgba(184, 134, 11, 0.4)',
     borderRadius: '50px',
-    padding: '14px 40px',
+    padding: '12px 32px',
     cursor: 'pointer',
     position: 'relative',
     overflow: 'hidden',
@@ -115,9 +115,46 @@ const styles = {
     boxShadow: '0 4px 16px rgba(100, 60, 20, 0.3)',
   },
 
+  buttonSecondary: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 'clamp(0.85rem, 1.5vw, 1rem)',
+    fontWeight: 600,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: 'var(--text-primary)',
+    background: 'rgba(184, 134, 11, 0.12)',
+    border: '2px solid var(--accent-gold)',
+    borderRadius: '50px',
+    padding: '10px 28px',
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease, box-shadow 0.3s ease',
+    boxShadow: '0 2px 8px rgba(100, 60, 20, 0.15)',
+  },
+
   buttonDisabled: {
     opacity: 0.5,
     cursor: 'not-allowed',
+  },
+
+  navRow: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '16px',
+  },
+
+  backBtn: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    color: 'var(--text-muted)',
+    background: 'transparent',
+    border: '1px solid var(--border-card)',
+    borderRadius: '20px',
+    padding: '6px 18px',
+    cursor: 'pointer',
+    transition: 'color 0.2s',
   },
 
   fadeOut: {
@@ -174,36 +211,35 @@ function ChampionCard({ champion, selected, taken, onClick }) {
         background: bgColor,
         border: `2px solid ${borderColor}`,
         borderRadius: '12px',
-        padding: '14px 16px',
+        padding: '10px 12px',
         cursor: isDisabled ? 'not-allowed' : 'pointer',
         opacity: isDisabled ? 0.45 : 1,
         textAlign: 'left',
         fontFamily: 'var(--font-display)',
         transition: 'all 0.2s ease',
         width: '100%',
-        maxWidth: '220px',
         boxShadow: selected ? '0 0 20px rgba(184, 134, 11, 0.2)' : 'none',
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '6px' }}>
+      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
         {champion.name}
       </div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-        Affinities: {champion.affinities.map(a => (
+      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+        {champion.affinities.map(a => (
           <span key={a} style={{ marginRight: '4px' }}>
             <CubeIcon type={a} /> {CUBE_TYPES[a]?.label}
           </span>
         ))}
       </div>
-      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
         Bag: {Object.entries(cubeCounts).map(([type, count]) => (
-          <span key={type} style={{ marginRight: '6px' }}>
+          <span key={type} style={{ marginRight: '5px' }}>
             <CubeIcon type={type} />{count}
           </span>
         ))}
       </div>
       {champion.abilities && (
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '6px', fontStyle: 'italic' }}>
+        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
           {champion.abilities.length} abilities
         </div>
       )}
@@ -222,13 +258,13 @@ function VillainCard({ villain, selected, onClick }) {
         background: bgColor,
         border: `2px solid ${borderColor}`,
         borderRadius: '12px',
-        padding: '14px 16px',
+        padding: '12px 14px',
         cursor: 'pointer',
         textAlign: 'left',
         fontFamily: 'var(--font-display)',
         transition: 'all 0.2s ease',
         width: '100%',
-        maxWidth: '200px',
+        maxWidth: '260px',
         boxShadow: selected ? '0 0 20px rgba(180, 40, 40, 0.15)' : 'none',
       }}
     >
@@ -245,9 +281,9 @@ function VillainCard({ villain, selected, onClick }) {
   );
 }
 
-export default function LandingPage({ onPlay }) {
+export default function LandingPage({ onPlay, onResume, hasSavedGame }) {
   const [exiting, setExiting] = useState(false);
-  const [step, setStep] = useState('splash'); // 'splash' | 'setup'
+  const [step, setStep] = useState('splash'); // 'splash' | 'players' | 'champions' | 'villain'
   const [playerCount, setPlayerCount] = useState(2);
   const [championIds, setChampionIds] = useState([null, null, null, null]);
   const [villainId, setVillainId] = useState('vil-cluny');
@@ -267,6 +303,11 @@ export default function LandingPage({ onPlay }) {
     setTimeout(() => onPlay(config), 550);
   };
 
+  const handleResume = () => {
+    setExiting(true);
+    setTimeout(() => onResume(), 550);
+  };
+
   const handlePlayerCountChange = (n) => {
     setPlayerCount(n);
     setCurrentPicker(0);
@@ -279,6 +320,16 @@ export default function LandingPage({ onPlay }) {
       next[currentPicker] = null;
     } else {
       next[currentPicker] = champId;
+      // Auto-advance to next unpicked player
+      if (playerCount > 1) {
+        for (let offset = 1; offset < playerCount; offset++) {
+          const idx = (currentPicker + offset) % playerCount;
+          if (!next[idx]) {
+            setCurrentPicker(idx);
+            break;
+          }
+        }
+      }
     }
     setChampionIds(next);
   };
@@ -308,23 +359,34 @@ export default function LandingPage({ onPlay }) {
         <p style={styles.subtitle}>A Redwall Adventure</p>
         <div style={styles.divider} />
 
+        {/* ── Step: Splash ── */}
         {step === 'splash' && (
           <>
             <button
               style={styles.button}
-              onClick={() => setStep('setup')}
+              onClick={() => setStep('players')}
               onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.target.style.transform = ''; }}
             >
-              Begin Your Adventure
+              New Game
             </button>
+            {hasSavedGame && (
+              <button
+                style={{ ...styles.buttonSecondary, marginTop: '12px' }}
+                onClick={handleResume}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.target.style.transform = ''; }}
+              >
+                Continue
+              </button>
+            )}
             <a
               href="https://docs.google.com/document/d/1LyNBD0d2oJCOFfGvD4e4zsY1cKv23_CxsA7pQhQN8ME/edit?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               style={{
                 fontFamily: 'var(--font-display)', fontSize: 'clamp(0.85rem, 1.5vw, 1rem)',
-                fontStyle: 'italic', color: 'var(--text-muted)', marginTop: '24px',
+                fontStyle: 'italic', color: 'var(--text-muted)', marginTop: '20px',
                 textDecoration: 'none', borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '2px', transition: 'color 0.2s ease',
               }}
@@ -336,15 +398,15 @@ export default function LandingPage({ onPlay }) {
           </>
         )}
 
-        {step === 'setup' && (
-          <div style={{ width: '100%', maxWidth: '900px' }}>
-            {/* Player count */}
-            <div style={styles.sectionLabel}>Players</div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
+        {/* ── Step: Player Count ── */}
+        {step === 'players' && (
+          <>
+            <div style={styles.sectionLabel}>How Many Players?</div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '8px' }}>
               {[1, 2, 3, 4].map(n => (
                 <button key={n} onClick={() => handlePlayerCountChange(n)} style={{
-                  fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600,
-                  width: '40px', height: '40px', borderRadius: '50%',
+                  fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600,
+                  width: '48px', height: '48px', borderRadius: '50%',
                   border: `2px solid ${n === playerCount ? 'var(--accent-gold)' : 'var(--border-card)'}`,
                   background: n === playerCount ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-surface)',
                   color: 'var(--text-primary)', cursor: 'pointer',
@@ -354,79 +416,100 @@ export default function LandingPage({ onPlay }) {
                 </button>
               ))}
             </div>
-
-            {/* Two-column layout: Champions | Horde */}
-            <div className="setup-grid" style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px',
-              marginBottom: '24px', alignItems: 'start',
-            }}>
-              {/* Left column — Champion selection */}
-              <div>
-                <div style={styles.sectionLabel}>
-                  Choose Champion — Player {currentPicker + 1}
-                </div>
-                {playerCount > 1 && (
-                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px' }}>
-                    {Array.from({ length: playerCount }, (_, i) => (
-                      <button key={i} onClick={() => setCurrentPicker(i)} style={{
-                        fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
-                        padding: '4px 14px', borderRadius: '20px',
-                        border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
-                        background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
-                        color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
-                        cursor: 'pointer', transition: 'all 0.2s ease',
-                      }}>
-                        P{i + 1}{championIds[i] ? ' \u2713' : ''}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div style={{
-                  display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '10px', justifyItems: 'center',
-                }}>
-                  {CHAMPIONS.map(c => (
-                    <ChampionCard
-                      key={c.id}
-                      champion={c}
-                      selected={championIds[currentPicker] === c.id}
-                      taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
-                      onClick={() => handlePickChampion(c.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Right column — Horde / Villain selection */}
-              <div>
-                <div style={styles.sectionLabel}>Villain</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-                  {VILLAINS.map(v => (
-                    <VillainCard
-                      key={v.id}
-                      villain={v}
-                      selected={villainId === v.id}
-                      onClick={() => setVillainId(v.id)}
-                    />
-                  ))}
-                </div>
-              </div>
+            <div style={styles.navRow}>
+              <button style={styles.backBtn} onClick={() => setStep('splash')}>Back</button>
+              <button
+                style={styles.button}
+                onClick={() => setStep('champions')}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.target.style.transform = ''; }}
+              >
+                Next
+              </button>
             </div>
+          </>
+        )}
 
-            {/* Start button */}
-            <button
-              style={{
-                ...styles.button,
-                ...(allPicked ? {} : styles.buttonDisabled),
-              }}
-              onClick={handleStart}
-              disabled={!allPicked}
-              onMouseEnter={e => { if (allPicked) e.target.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.target.style.transform = ''; }}
-            >
-              Start Game
-            </button>
-          </div>
+        {/* ── Step: Champion Selection ── */}
+        {step === 'champions' && (
+          <>
+            <div style={styles.sectionLabel}>
+              {playerCount > 1 ? `Player ${currentPicker + 1}'s Champion` : 'Choose Your Champion'}
+            </div>
+            {playerCount > 1 && (
+              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '10px' }}>
+                {Array.from({ length: playerCount }, (_, i) => (
+                  <button key={i} onClick={() => setCurrentPicker(i)} style={{
+                    fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
+                    padding: '4px 14px', borderRadius: '20px',
+                    border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
+                    background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
+                    color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
+                    cursor: 'pointer', transition: 'all 0.2s ease',
+                  }}>
+                    P{i + 1}{championIds[i] ? ' \u2713' : ''}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '8px', width: '100%', maxWidth: '460px',
+            }}>
+              {CHAMPIONS.map(c => (
+                <ChampionCard
+                  key={c.id}
+                  champion={c}
+                  selected={championIds[currentPicker] === c.id}
+                  taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
+                  onClick={() => handlePickChampion(c.id)}
+                />
+              ))}
+            </div>
+            <div style={styles.navRow}>
+              <button style={styles.backBtn} onClick={() => setStep('players')}>Back</button>
+              <button
+                style={{
+                  ...styles.button,
+                  ...(allPicked ? {} : styles.buttonDisabled),
+                }}
+                onClick={() => { if (allPicked) setStep('villain'); }}
+                disabled={!allPicked}
+                onMouseEnter={e => { if (allPicked) e.target.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.target.style.transform = ''; }}
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Step: Villain Selection ── */}
+        {step === 'villain' && (
+          <>
+            <div style={styles.sectionLabel}>Choose Your Villain</div>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {VILLAINS.map(v => (
+                <VillainCard
+                  key={v.id}
+                  villain={v}
+                  selected={villainId === v.id}
+                  onClick={() => setVillainId(v.id)}
+                />
+              ))}
+            </div>
+            <div style={styles.navRow}>
+              <button style={styles.backBtn} onClick={() => setStep('champions')}>Back</button>
+              <button
+                style={styles.button}
+                onClick={handleStart}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.target.style.transform = ''; }}
+              >
+                Start Game
+              </button>
+            </div>
+          </>
         )}
       </div>
 

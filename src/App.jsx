@@ -11,7 +11,7 @@ import CardDetail from './components/CardDetail';
 
 import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
-import useGameState, { PLAYER_COLORS } from './hooks/useGameState';
+import useGameState, { PLAYER_COLORS, hasSavedGame } from './hooks/useGameState';
 import useIsMobile from './hooks/useIsMobile';
 
 /* Layout styles moved to src/layout.css for responsive breakpoints */
@@ -21,12 +21,14 @@ const DEFAULT_CONFIG = { playerCount: 2, championIds: ['matthias', 'ralph'], vil
 export default function App() {
   const [gameConfig, setGameConfig] = useState(DEFAULT_CONFIG);
   const [showLanding, setShowLanding] = useState(true);
+  const [savedExists] = useState(() => hasSavedGame());
 
   const {
     state, startRecruit, useLocationAction,
     drawCube, confirmRecruit, resolveCombat, forfeitCombat, cancelAction,
     endDay, dropCube, discardFood, returnCubeToBag, endNight,
     startFortressCombat, startVillainCombat, startGame, restartGame,
+    resumeGame,
     requestHelp, helperDrawCube, helperDone, skipHelp,
     calculatePower, getPlayerBustThreshold,
   } = useGameState(gameConfig);
@@ -119,7 +121,13 @@ export default function App() {
 
 
   if (showLanding) {
-    return <LandingPage onPlay={(config) => { setGameConfig(config); startGame(config); setShowLanding(false); }} />;
+    return (
+      <LandingPage
+        onPlay={(config) => { setGameConfig(config); startGame(config); setShowLanding(false); }}
+        onResume={() => { resumeGame(); setShowLanding(false); }}
+        hasSavedGame={savedExists}
+      />
+    );
   }
 
   const showBoard = !isMobile || mobileTab === 'board';
