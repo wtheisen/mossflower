@@ -47,15 +47,13 @@ export function startDuskPhase(s) {
 
 /** Sequential advance for dusk: find next player with band cubes after current. */
 export function advanceDusk(s) {
-  for (let offset = 1; offset < s.playerCount; offset++) {
-    const idx = (s.activePlayerIndex + offset) % s.playerCount;
-    if (idx <= s.activePlayerIndex) break;
-    if (s.players[idx].band.length > 0) {
+  for (let i = s.activePlayerIndex + 1; i < s.playerCount; i++) {
+    if (s.players[i].band.length > 0) {
       return {
         ...s,
-        activePlayerIndex: idx,
+        activePlayerIndex: i,
         message: s.playerCount > 1
-          ? `Dusk — Player ${idx + 1}, place your cubes.`
+          ? `Dusk — Player ${i + 1}, place your cubes.`
           : 'Dusk — place your cubes.',
       };
     }
