@@ -49,6 +49,7 @@ export const CHAMPIONS = [
     type: 'champion',
     affinities: ['mouse', 'hare'],
     startingBag: { mouse: 4, hare: 1, mole: 1, otter: 1, inexperience: 3 },
+    tableauSlots: 5,
     abilities: [
       {
         id: 'strength-in-numbers',
