@@ -82,6 +82,18 @@ export const ABILITIES = {
     },
   },
 
+  // Mossflower Border: Draw 1 cube from bag
+  'loc-mossflower-border': {
+    onAction(ctx) {
+      const cube = ctx.drawFromBag();
+      if (cube) {
+        ctx.setMessage(`Mossflower Border: Drew ${cube}.`);
+      } else {
+        ctx.setMessage('Mossflower Border: Bag is empty.');
+      }
+    },
+  },
+
   // ── Hero Abilities ────────────────────────────────────────
 
   // Redwall Sentry: each mouse placed here gives +1 combat strength

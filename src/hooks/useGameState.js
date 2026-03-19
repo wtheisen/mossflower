@@ -569,63 +569,6 @@ export default function useGameState(config) {
     });
   }, []);
 
-  const useVeteranAbility = useCallback((targetLocationId) => {
-    setState((s) => {
-      const p = getActivePlayer(s);
-      if (p.action || s.phase !== 'day') return s;
-
-      const vetId = 'hero-salamandastron-veteran';
-      const vetAbility = ABILITIES[vetId];
-      if (!vetAbility?.canRemoveVermin) return s;
-
-      const placed = p.placements[vetId] ?? [];
-      if (vetAbility.canRemoveVermin(placed) < 1) {
-        return { ...s, message: 'Salamandastron Veteran: need 2 matching cubes placed.' };
-      }
-
-      const loc = s.discoveredLocations.find((c) => c.id === targetLocationId)
-        || s.adventureRow.find((c) => c.id === targetLocationId);
-      if (!loc) return { ...s, message: 'Invalid target location.' };
-
-      const slots = s.cardSlots[targetLocationId] ?? [];
-      const verminIdx = slots.findIndex((c) => c.type === 'vermin');
-      if (verminIdx === -1) {
-        return { ...s, message: `${loc.name} has no vermin to remove.` };
-      }
-
-      const counts = {};
-      for (const c of placed) {
-        counts[c.type] = (counts[c.type] ?? 0) + 1;
-      }
-      let spentType = null;
-      for (const [type, n] of Object.entries(counts)) {
-        if (n >= 2) { spentType = type; break; }
-      }
-      if (!spentType) {
-        return { ...s, message: 'Salamandastron Veteran: no matching pair to spend.' };
-      }
-
-      let toRemove = 2;
-      const newPlaced = placed.filter((c) => {
-        if (c.type === spentType && toRemove > 0) { toRemove--; return false; }
-        return true;
-      });
-
-      const newSlots = [...slots];
-      newSlots.splice(verminIdx, 1);
-
-      const newCardSlots = { ...s.cardSlots, [targetLocationId]: newSlots };
-      const newPlacements = { ...p.placements, [vetId]: newPlaced };
-
-      let result = { ...s, cardSlots: newCardSlots };
-      result = patchActivePlayer(result, { placements: newPlacements });
-      result.message = `Salamandastron Veteran: spent 2 ${spentType} cubes, removed 1 vermin from ${loc.name}.`;
-
-      result = countAction(result);
-      return result;
-    });
-  }, []);
-
   const cancelAction = useCallback(() => {
     setState((s) => {
       const p = getActivePlayer(s);
@@ -917,7 +860,6 @@ export default function useGameState(config) {
     confirmRecruit,
     resolveCombat,
     forfeitCombat,
-    useVeteranAbility,
     cancelAction,
     endDay,
     dropCube,
