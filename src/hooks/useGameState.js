@@ -223,7 +223,17 @@ export default function useGameState(config) {
         const badWarning = newBustCount > 0 ? ` (${newBustCount}/${bustThreshold} bad)` : '';
         message = `Drew "${drawn}" — Power ${power} vs ${effectiveVerm} vermin.${reductionNote}${badWarning}${triggerMsg}`;
       } else if (busted) {
-        message = `BUST! Drew "${drawn}" — ${bustThreshold} bad cubes. Power was ${power}.${triggerMsg}`;
+        let result = patchActivePlayer(s, {
+          bag: newBag,
+          band: newBand,
+          action: null,
+          bustCount: 0,
+          busted: false,
+          drawBonuses: { power: 0, bagAdds: [], messages: [] },
+        });
+        result.message = `BUST! Drew "${drawn}" — ${bustThreshold} bad cubes. Cubes stay in your band for dusk.${triggerMsg}`;
+        result = countAction(result);
+        return result;
       } else {
         const badWarning = newBustCount > 0 ? ` (${newBustCount}/${bustThreshold} bad)` : '';
         message = `Drew "${drawn}" — Power: ${power}. ${newBand.length} cubes drawn.${badWarning}${triggerMsg}`;
