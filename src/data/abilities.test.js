@@ -93,6 +93,20 @@ describe('great-hall-base', () => {
   });
 });
 
+describe('cellar-base', () => {
+  it('adds 1 food to band', () => {
+    const ctx = mockCtx();
+    ABILITIES['cellar-base'].onAction(ctx);
+    expect(ctx._band).toEqual(['food']);
+  });
+
+  it('sets a message mentioning The Cellar', () => {
+    const ctx = mockCtx();
+    ABILITIES['cellar-base'].onAction(ctx);
+    expect(ctx._message).toContain('The Cellar');
+  });
+});
+
 describe('redwall-infirmary', () => {
   it('removes all wounds from band', () => {
     const ctx = mockCtx();

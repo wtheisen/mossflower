@@ -265,7 +265,7 @@ export const BASE_LOCATIONS = [
     type: 'location',
     slots: 2,
     verminLimit: 2,
-    actionText: 'Gain 1 Food per Worker placed here.',
+    actionText: 'Gain 1 Food.',
   },
 ];
 
