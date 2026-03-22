@@ -600,6 +600,19 @@ describe('confirmRecruitAction', () => {
     expect(result.players[0].action).not.toBeNull();
   });
 
+  it('includes keep-drawing guidance in the insufficient-food message', () => {
+    const s = makeState({
+      adventureRow: [hero],
+      cardSlots: { 'hero-1': [] },
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1', cost: 2 },
+        band: ['food', 'mouse'], // only 1 food, need 2
+      })],
+    });
+    const result = confirmRecruitAction(s);
+    expect(result.message).toBe('Need 2 food to recruit. Have 1. Keep drawing or cancel.');
+  });
+
   it('returns message when player has no food at all', () => {
     const s = makeState({
       adventureRow: [hero],

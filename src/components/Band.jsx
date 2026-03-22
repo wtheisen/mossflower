@@ -266,8 +266,7 @@ export default function Band({
           {!busted && !isCombat && (
             <button
               style={{ ...styles.btn, ...styles.btnRecruit, ...(!canAffordRecruit ? styles.btnDisabled : {}) }}
-              onClick={canAffordRecruit ? onRecruit : undefined}
-              disabled={!canAffordRecruit}
+              onClick={onRecruit}
             >
               Recruit
             </button>
