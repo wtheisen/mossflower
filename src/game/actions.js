@@ -8,7 +8,7 @@ import {
   checkGameOver, advanceDayTurn, advanceDusk, advanceNight,
   spreadVermin, countAction,
 } from './phases';
-import { ABILITIES } from '../data/abilities';
+import { ABILITIES } from './abilities';
 
 // ── Day Actions ─────────────────────────────────────
 
