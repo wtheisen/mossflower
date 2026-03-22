@@ -116,7 +116,7 @@ export default function ActionOverlay({
   onDraw, onRecruit, onResolveCombat, onForfeit, onCancel,
   helpPhase, players, activePlayerIndex,
   onRequestHelp, onHelperDraw, onHelperDone, onSkipHelp,
-  getPlayerBustThreshold,
+  getPlayerBustThreshold, onBust,
 }) {
   if (!action) return null;
 
@@ -149,6 +149,7 @@ export default function ActionOverlay({
             onForfeit={onForfeit}
             onCancel={onCancel}
             helpPhase={helpPhase}
+            onBust={onBust}
           />
           {canRequestHelp && (
             <button

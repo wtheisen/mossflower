@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import LandingPage from './components/LandingPage';
 import StatusBar from './components/StatusBar';
 import AdventureRow from './components/AdventureRow';
@@ -49,8 +49,13 @@ export default function App() {
   const [draggedCubeType, setDraggedCubeType] = useState(null);
   const [selectedBandCubeIndex, setSelectedBandCubeIndex] = useState(null);
   const [expandedCard, setExpandedCard] = useState(null);
+  const [bustAnimating, setBustAnimating] = useState(false);
   const [mobileTab, setMobileTab] = useState('board');
   const [logOpen, setLogOpen] = useState(false);
+
+  const handleBust = useCallback(() => {
+    setBustAnimating(true);
+  }, []);
   const { isMobile } = useIsMobile();
 
   const handleExpand = (card, filledSlots, { playerTokens, wide } = {}) => {
@@ -139,7 +144,10 @@ export default function App() {
   const showPlayer = !isMobile || mobileTab === 'player';
 
   return (
-    <div className={`board${isMobile ? ' board--mobile' : ''}`}>
+    <div
+      className={`board${isMobile ? ' board--mobile' : ''}${bustAnimating ? ' board--bust' : ''}`}
+      onAnimationEnd={bustAnimating ? () => setBustAnimating(false) : undefined}
+    >
       <StatusBar
         day={day}
         phase={phase}
@@ -302,6 +310,7 @@ export default function App() {
                 onDragCubeType={setDraggedCubeType}
                 selectedCubeIndex={selectedBandCubeIndex}
                 onSelectCube={setSelectedBandCubeIndex}
+                onBust={handleBust}
               />
             ) : null}
             bagSlot={isViewingOwn ? <Bag cubes={bag} /> : null}
@@ -360,6 +369,7 @@ export default function App() {
           onHelperDone={helperDone}
           onSkipHelp={skipHelp}
           getPlayerBustThreshold={getPlayerBustThreshold}
+          onBust={handleBust}
         />
       )}
 
