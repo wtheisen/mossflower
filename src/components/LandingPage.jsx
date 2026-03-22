@@ -281,6 +281,131 @@ function VillainCard({ villain, selected, onClick }) {
   );
 }
 
+function PlayerCountPicker({ playerCount, setPlayerCount, onNext, onBack }) {
+  return (
+    <>
+      <div style={styles.sectionLabel}>How Many Players?</div>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '8px' }}>
+        {[1, 2, 3, 4].map(n => (
+          <button key={n} onClick={() => setPlayerCount(n)} style={{
+            fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600,
+            width: '48px', height: '48px', borderRadius: '50%',
+            border: `2px solid ${n === playerCount ? 'var(--accent-gold)' : 'var(--border-card)'}`,
+            background: n === playerCount ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-surface)',
+            color: 'var(--text-primary)', cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <div style={styles.navRow}>
+        <button style={styles.backBtn} onClick={onBack}>Back</button>
+        <button
+          style={styles.button}
+          onClick={onNext}
+          onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={e => { e.target.style.transform = ''; }}
+        >
+          Next
+        </button>
+      </div>
+    </>
+  );
+}
+
+function ChampionPicker({ playerCount, championIds, currentPicker, setCurrentPicker, onPickChampion, allPicked, onNext, onBack }) {
+  const takenChampionIds = new Set(championIds.slice(0, playerCount).filter(Boolean));
+
+  return (
+    <>
+      <div style={styles.sectionLabel}>
+        {playerCount > 1 ? `Player ${currentPicker + 1}'s Champion` : 'Choose Your Champion'}
+      </div>
+      {playerCount > 1 && (
+        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '10px' }}>
+          {Array.from({ length: playerCount }, (_, i) => (
+            <button key={i} onClick={() => setCurrentPicker(i)} style={{
+              fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
+              padding: '4px 14px', borderRadius: '20px',
+              border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
+              background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
+              color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
+              cursor: 'pointer', transition: 'all 0.2s ease',
+            }}>
+              P{i + 1}{championIds[i] ? ' \u2713' : ''}
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '8px', width: '100%', maxWidth: '460px',
+      }}>
+        {CHAMPIONS.map(c => (
+          <ChampionCard
+            key={c.id}
+            champion={c}
+            selected={championIds[currentPicker] === c.id}
+            taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
+            onClick={() => onPickChampion(c.id)}
+          />
+        ))}
+      </div>
+      <div style={styles.navRow}>
+        <button style={styles.backBtn} onClick={onBack}>Back</button>
+        <button
+          style={{ ...styles.button, ...(allPicked ? {} : styles.buttonDisabled) }}
+          onClick={() => { if (allPicked) onNext(); }}
+          disabled={!allPicked}
+          onMouseEnter={e => { if (allPicked) e.target.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={e => { e.target.style.transform = ''; }}
+        >
+          Next
+        </button>
+      </div>
+    </>
+  );
+}
+
+const LEAVES = [
+  { delay: 0, left: 15, duration: 12, size: 16 },
+  { delay: 3, left: 45, duration: 15, size: 12 },
+  { delay: 7, left: 75, duration: 11, size: 14 },
+  { delay: 5, left: 30, duration: 14, size: 10 },
+  { delay: 10, left: 85, duration: 13, size: 13 },
+  { delay: 2, left: 60, duration: 16, size: 11 },
+];
+
+function VillainPicker({ villainId, setVillainId, onStart, onBack }) {
+  return (
+    <>
+      <div style={styles.sectionLabel}>Choose Your Villain</div>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {VILLAINS.map(v => (
+          <VillainCard
+            key={v.id}
+            villain={v}
+            selected={villainId === v.id}
+            onClick={() => setVillainId(v.id)}
+          />
+        ))}
+      </div>
+      <div style={styles.navRow}>
+        <button style={styles.backBtn} onClick={onBack}>Back</button>
+        <button
+          style={styles.button}
+          onClick={onStart}
+          onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={e => { e.target.style.transform = ''; }}
+        >
+          Start Game
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function LandingPage({ onPlay, onResume, hasSavedGame }) {
   const [exiting, setExiting] = useState(false);
   const [step, setStep] = useState('splash'); // 'splash' | 'players' | 'champions' | 'villain'
@@ -289,7 +414,6 @@ export default function LandingPage({ onPlay, onResume, hasSavedGame }) {
   const [villainId, setVillainId] = useState('vil-cluny');
   const [currentPicker, setCurrentPicker] = useState(0);
 
-  const takenChampionIds = new Set(championIds.slice(0, playerCount).filter(Boolean));
   const allPicked = championIds.slice(0, playerCount).every(Boolean);
 
   const handleStart = () => {
@@ -334,19 +458,10 @@ export default function LandingPage({ onPlay, onResume, hasSavedGame }) {
     setChampionIds(next);
   };
 
-  const leaves = [
-    { delay: 0, left: 15, duration: 12, size: 16 },
-    { delay: 3, left: 45, duration: 15, size: 12 },
-    { delay: 7, left: 75, duration: 11, size: 14 },
-    { delay: 5, left: 30, duration: 14, size: 10 },
-    { delay: 10, left: 85, duration: 13, size: 13 },
-    { delay: 2, left: 60, duration: 16, size: 11 },
-  ];
-
   return (
     <div style={{ ...styles.wrapper, ...(exiting ? styles.fadeOut : {}) }}>
       <div style={styles.particles}>
-        {leaves.map((l, i) => <Leaf key={i} {...l} />)}
+        {LEAVES.map((l, i) => <Leaf key={i} {...l} />)}
       </div>
       <div style={styles.borderFrame}><div style={styles.borderFrameInner} /></div>
       <CornerFlourish style={{ top: '30px', left: '30px' }} />
@@ -400,116 +515,36 @@ export default function LandingPage({ onPlay, onResume, hasSavedGame }) {
 
         {/* ── Step: Player Count ── */}
         {step === 'players' && (
-          <>
-            <div style={styles.sectionLabel}>How Many Players?</div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '8px' }}>
-              {[1, 2, 3, 4].map(n => (
-                <button key={n} onClick={() => handlePlayerCountChange(n)} style={{
-                  fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600,
-                  width: '48px', height: '48px', borderRadius: '50%',
-                  border: `2px solid ${n === playerCount ? 'var(--accent-gold)' : 'var(--border-card)'}`,
-                  background: n === playerCount ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-surface)',
-                  color: 'var(--text-primary)', cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}>
-                  {n}
-                </button>
-              ))}
-            </div>
-            <div style={styles.navRow}>
-              <button style={styles.backBtn} onClick={() => setStep('splash')}>Back</button>
-              <button
-                style={styles.button}
-                onClick={() => setStep('champions')}
-                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.target.style.transform = ''; }}
-              >
-                Next
-              </button>
-            </div>
-          </>
+          <PlayerCountPicker
+            playerCount={playerCount}
+            setPlayerCount={handlePlayerCountChange}
+            onNext={() => setStep('champions')}
+            onBack={() => setStep('splash')}
+          />
         )}
 
         {/* ── Step: Champion Selection ── */}
         {step === 'champions' && (
-          <>
-            <div style={styles.sectionLabel}>
-              {playerCount > 1 ? `Player ${currentPicker + 1}'s Champion` : 'Choose Your Champion'}
-            </div>
-            {playerCount > 1 && (
-              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '10px' }}>
-                {Array.from({ length: playerCount }, (_, i) => (
-                  <button key={i} onClick={() => setCurrentPicker(i)} style={{
-                    fontFamily: 'var(--font-display)', fontSize: '0.8rem', fontWeight: 600,
-                    padding: '4px 14px', borderRadius: '20px',
-                    border: `1px solid ${i === currentPicker ? 'var(--accent-gold)' : 'var(--border-card)'}`,
-                    background: i === currentPicker ? 'rgba(184, 134, 11, 0.12)' : 'transparent',
-                    color: championIds[i] ? 'var(--text-primary)' : 'var(--text-muted)',
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                  }}>
-                    P{i + 1}{championIds[i] ? ' \u2713' : ''}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '8px', width: '100%', maxWidth: '460px',
-            }}>
-              {CHAMPIONS.map(c => (
-                <ChampionCard
-                  key={c.id}
-                  champion={c}
-                  selected={championIds[currentPicker] === c.id}
-                  taken={takenChampionIds.has(c.id) && championIds[currentPicker] !== c.id}
-                  onClick={() => handlePickChampion(c.id)}
-                />
-              ))}
-            </div>
-            <div style={styles.navRow}>
-              <button style={styles.backBtn} onClick={() => setStep('players')}>Back</button>
-              <button
-                style={{
-                  ...styles.button,
-                  ...(allPicked ? {} : styles.buttonDisabled),
-                }}
-                onClick={() => { if (allPicked) setStep('villain'); }}
-                disabled={!allPicked}
-                onMouseEnter={e => { if (allPicked) e.target.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.target.style.transform = ''; }}
-              >
-                Next
-              </button>
-            </div>
-          </>
+          <ChampionPicker
+            playerCount={playerCount}
+            championIds={championIds}
+            currentPicker={currentPicker}
+            setCurrentPicker={setCurrentPicker}
+            onPickChampion={handlePickChampion}
+            allPicked={allPicked}
+            onNext={() => setStep('villain')}
+            onBack={() => setStep('players')}
+          />
         )}
 
         {/* ── Step: Villain Selection ── */}
         {step === 'villain' && (
-          <>
-            <div style={styles.sectionLabel}>Choose Your Villain</div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {VILLAINS.map(v => (
-                <VillainCard
-                  key={v.id}
-                  villain={v}
-                  selected={villainId === v.id}
-                  onClick={() => setVillainId(v.id)}
-                />
-              ))}
-            </div>
-            <div style={styles.navRow}>
-              <button style={styles.backBtn} onClick={() => setStep('champions')}>Back</button>
-              <button
-                style={styles.button}
-                onClick={handleStart}
-                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.target.style.transform = ''; }}
-              >
-                Start Game
-              </button>
-            </div>
-          </>
+          <VillainPicker
+            villainId={villainId}
+            setVillainId={setVillainId}
+            onStart={handleStart}
+            onBack={() => setStep('champions')}
+          />
         )}
       </div>
 
