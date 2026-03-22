@@ -193,7 +193,6 @@ const styles = {
 export default function Card({ card, filledSlots = [], wide = false, onClick, selected = false, highlighted = false, onCubeDrop, onSlotClick, onTapPlace, playerTokens, compact = false, onExpand }) {
   const borderColor = TYPE_COLORS[card.type] ?? 'var(--border-card)';
   const bgTint = TYPE_BG[card.type] ?? 'transparent';
-  const scene = ART_SCENES[card.type] ?? ART_SCENES.hero;
 
   const totalSlots = card.tableauSlots ?? card.slots ?? 0;
   const affinities = card.affinities ?? (card.affinity ? [card.affinity] : []);
@@ -269,6 +268,8 @@ export default function Card({ card, filledSlots = [], wide = false, onClick, se
       </div>
     );
   }
+
+  const scene = ART_SCENES[card.type] ?? ART_SCENES.hero;
 
   const handleDragOver = (e) => {
     if (!droppable) return;

@@ -222,7 +222,7 @@ function filterLabel(slotFilter) {
 const BUST_TYPES_SET = new Set(['inexperience', 'vermin', 'wound']);
 const CRITTER_TYPES_SET = new Set(['mouse', 'squirrel', 'hare', 'otter', 'mole', 'badger']);
 
-function isValidDuskTarget(cubeType, targetType) {
+export function isValidDuskTarget(cubeType, targetType) {
   // targetType: 'champion', 'hero', 'ability', 'location'
   if (!cubeType) return true; // no cube dragged, show all
   if (cubeType === 'inexperience') return targetType === 'champion' || targetType === 'ability';
@@ -231,7 +231,6 @@ function isValidDuskTarget(cubeType, targetType) {
   if (CRITTER_TYPES_SET.has(cubeType)) return true;
   // food: tableau, locations, or discard
   if (cubeType === 'food') return true;
-  return true;
 }
 
 export default function PlayerTableau({ champion, tableau, placements = {}, abilityPlacements = {}, onCubeDrop, onTapPlace, onReturnCube, bandSlot, bagSlot, viewedPlayerIndex, playerCount, activePlayerIndex, onPrevPlayer, onNextPlayer, isDusk, draggedCubeType, compact = false, onExpand }) {
