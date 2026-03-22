@@ -38,7 +38,7 @@ export function startDuskPhase(s) {
         activePlayerIndex: i,
         message: s.playerCount > 1
           ? `Dusk — Player ${i + 1}, place your cubes.`
-          : 'Dusk — select a cube from your band, then click a card to place it.',
+          : s.message,
       };
     }
   }

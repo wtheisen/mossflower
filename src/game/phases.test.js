@@ -1,16 +1,49 @@
 import { describe, it, expect } from 'vitest';
-import { spreadVermin } from './phases.js';
+import { spreadVermin, startDuskPhase } from './phases.js';
 
 function makeLocation(id, name, slots = 3) {
   return { id, name, type: 'location', slots };
 }
 
+function makePlayer(overrides = {}) {
+  return {
+    action: null,
+    bag: [],
+    band: ['mouse'],
+    bustCount: 0,
+    busted: false,
+    tableau: [],
+    placements: {},
+    abilityPlacements: {},
+    champion: { id: 'champ-1', name: 'Champion', tableauSlots: 5, abilities: [] },
+    nightReturns: 0,
+    actionsUsed: 2,
+    passed: true,
+    currentLocation: null,
+    drawBonuses: { power: 0, bagAdds: [], messages: [] },
+    helpBand: [],
+    helpBustCount: 0,
+    helpBusted: false,
+    ...overrides,
+  };
+}
+
 function makeState(overrides = {}) {
   return {
+    phase: 'day',
+    day: 1,
+    conquest: 2,
+    playerCount: 1,
+    activePlayerIndex: 0,
+    helpPhase: false,
+    gameResult: null,
     adventureRow: [],
+    adventureDeck: [],
     discoveredLocations: [],
     cardSlots: {},
-    conquest: 0,
+    horde: { fortress: null, villain: null, fortressCleared: false, fortressDeck: [] },
+    message: '',
+    players: [makePlayer()],
     ...overrides,
   };
 }
@@ -97,5 +130,59 @@ describe('spreadVermin', () => {
     const s = makeState({ discoveredLocations: [loc], cardSlots: original });
     spreadVermin(s, 1);
     expect(original['loc-1']).toBeUndefined();
+  });
+});
+
+describe('startDuskPhase', () => {
+  describe('single player', () => {
+    it('preserves the existing message (e.g. combat result) when entering dusk', () => {
+      const combatMsg = 'Victory at Dark Forest! Power 3 vs 2 vermin. Overkill 1 → conquest -1 (now 1).';
+      const s = makeState({ message: combatMsg });
+      const result = startDuskPhase(s);
+      expect(result.phase).toBe('dusk');
+      expect(result.message).toBe(combatMsg);
+    });
+
+    it('sets phase to dusk', () => {
+      const s = makeState({ message: 'Day 1 begins.' });
+      const result = startDuskPhase(s);
+      expect(result.phase).toBe('dusk');
+    });
+
+    it('skips players with empty band and uses first with cubes', () => {
+      const s = makeState({
+        playerCount: 1,
+        players: [makePlayer({ band: ['mouse'] })],
+        message: 'some message',
+      });
+      const result = startDuskPhase(s);
+      expect(result.activePlayerIndex).toBe(0);
+      expect(result.phase).toBe('dusk');
+    });
+  });
+
+  describe('multi player', () => {
+    it('sets player-specific dusk message', () => {
+      const s = makeState({
+        playerCount: 2,
+        players: [makePlayer(), makePlayer()],
+        message: 'Victory at X!',
+      });
+      const result = startDuskPhase(s);
+      expect(result.phase).toBe('dusk');
+      expect(result.message).toContain('Player 1');
+      expect(result.message).toContain('place your cubes');
+    });
+
+    it('uses first player with band cubes', () => {
+      const s = makeState({
+        playerCount: 2,
+        players: [makePlayer({ band: [] }), makePlayer({ band: ['mouse'] })],
+        message: 'some message',
+      });
+      const result = startDuskPhase(s);
+      expect(result.activePlayerIndex).toBe(1);
+      expect(result.message).toContain('Player 2');
+    });
   });
 });
