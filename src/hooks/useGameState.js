@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BUST_TYPES, shuffleArray, STORAGE_KEY } from '../game/constants';
-import { getActivePlayer, patchActivePlayer, patchPlayer, countVermin } from '../game/helpers';
+import { getActivePlayer, patchActivePlayer, patchPlayer, countVermin, findCardById } from '../game/helpers';
 import {
   getPlayerBustThreshold, evaluateDrawTriggers, calculatePower,
   getVerminReduction, getCombatWinFood, createAbilityCtx,
@@ -83,8 +83,7 @@ export default function useGameState(config) {
       if (s.gameResult) return s;
       const p = getActivePlayer(s);
       if (p.action || s.phase !== 'day') return s;
-      const loc = s.discoveredLocations.find((c) => c.id === cardId)
-        || s.adventureRow.find((c) => c.id === cardId);
+      const loc = findCardById(s, cardId);
       if (!loc || loc.type !== 'location') return s;
 
       const slots = s.cardSlots[cardId] ?? [];
@@ -195,10 +194,7 @@ export default function useGameState(config) {
         newCardSlots[targetId] = [...existing, ...returnSlots];
         const bandAfter = newBand.filter((c) => c !== 'vermin');
 
-        const loc = s.discoveredLocations.find((c) => c.id === targetId)
-          || s.adventureRow.find((c) => c.id === targetId)
-          || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
-          || (s.horde.villain?.id === targetId ? s.horde.villain : null);
+        const loc = findCardById(s, targetId);
         const locName = loc?.name ?? targetId;
 
         let result = { ...s, helpPhase: false, cardSlots: newCardSlots, conquest: s.conquest + 1 };
@@ -443,10 +439,7 @@ export default function useGameState(config) {
       const verm = Math.max(0, rawVerm - reduction);
       const reductionNote = reduction > 0 ? ` (${rawVerm} vermin - ${reduction} negated)` : '';
 
-      const loc = s.discoveredLocations.find((c) => c.id === targetId)
-        || s.adventureRow.find((c) => c.id === targetId)
-        || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
-        || (s.horde.villain?.id === targetId ? s.horde.villain : null);
+      const loc = findCardById(s, targetId);
       const locName = loc?.name ?? targetId;
 
       const clearAction = {
@@ -557,10 +550,7 @@ export default function useGameState(config) {
       newCardSlots[targetId] = [...existing, ...returnSlots];
       const newBand = p.band.filter((c) => c !== 'vermin');
 
-      const loc = s.discoveredLocations.find((c) => c.id === targetId)
-        || s.adventureRow.find((c) => c.id === targetId)
-        || (s.horde.fortress?.id === targetId ? s.horde.fortress : null)
-        || (s.horde.villain?.id === targetId ? s.horde.villain : null);
+      const loc = findCardById(s, targetId);
       const locName = loc?.name ?? targetId;
 
       let result = { ...s, helpPhase: false, cardSlots: newCardSlots, conquest: s.conquest + 1 };
