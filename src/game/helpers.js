@@ -36,6 +36,14 @@ export function countVermin(cubes) {
   return cubes.filter((c) => c === 'vermin').length;
 }
 
+export function findCardById(state, cardId) {
+  return state.adventureRow.find((c) => c.id === cardId)
+    || state.discoveredLocations.find((c) => c.id === cardId)
+    || (state.horde.fortress?.id === cardId ? state.horde.fortress : null)
+    || (state.horde.villain?.id === cardId ? state.horde.villain : null)
+    || null;
+}
+
 export function getActivePlayer(s) {
   return s.players[s.activePlayerIndex];
 }
