@@ -11,6 +11,7 @@ import CardDetail from './components/CardDetail';
 
 import ActionOverlay from './components/ActionOverlay';
 import GameOverOverlay from './components/GameOverOverlay';
+import GameLog from './components/GameLog';
 import useGameState, { PLAYER_COLORS, hasSavedGame } from './hooks/useGameState';
 import useIsMobile from './hooks/useIsMobile';
 
@@ -34,7 +35,7 @@ export default function App() {
   } = useGameState(gameConfig);
 
   const { phase, day, conquest, adventureRow, adventureDeck, discoveredLocations, horde,
-    players, activePlayerIndex, playerCount, cardSlots, message, gameResult, helpPhase } = state;
+    players, activePlayerIndex, playerCount, cardSlots, message, gameResult, helpPhase, log } = state;
   const activePlayer = players[activePlayerIndex];
   const { champion, tableau, placements, abilityPlacements, bag, band, action, busted, bustCount, nightReturns, drawBonuses } = activePlayer;
 
@@ -49,6 +50,7 @@ export default function App() {
   const [selectedBandCubeIndex, setSelectedBandCubeIndex] = useState(null);
   const [expandedCard, setExpandedCard] = useState(null);
   const [mobileTab, setMobileTab] = useState('board');
+  const [logOpen, setLogOpen] = useState(false);
   const { isMobile } = useIsMobile();
 
   const handleExpand = (card, filledSlots, { playerTokens, wide } = {}) => {
@@ -148,7 +150,7 @@ export default function App() {
         compact={isMobile}
       />
 
-      <div className={isMobile ? 'mobile-tab-content' : 'main-area'}>
+      <div className={isMobile ? 'mobile-tab-content' : 'main-area'} style={{ position: 'relative' }}>
         {showBoard && (
           <div className={isMobile ? 'mobile-board-view' : 'left-column'}>
             {isMobile ? (
@@ -243,10 +245,18 @@ export default function App() {
             />
           </div>
         )}
+
+        {!isMobile && (
+          <GameLog
+            log={log ?? []}
+            isOpen={logOpen}
+            onToggle={() => setLogOpen((o) => !o)}
+          />
+        )}
       </div>
 
       {showPlayer && (
-        <div className={isMobile ? 'mobile-player-view' : 'player-area'}>
+        <div className={isMobile ? 'mobile-player-view' : 'player-area'} style={isMobile ? { display: 'flex', flexDirection: 'column', overflow: 'hidden' } : undefined}>
           <PlayerTableau
             champion={viewedPlayer.champion}
             tableau={viewedPlayer.tableau}
@@ -296,6 +306,14 @@ export default function App() {
             ) : null}
             bagSlot={isViewingOwn ? <Bag cubes={bag} /> : null}
           />
+          {isMobile && (
+            <GameLog
+              log={log ?? []}
+              isOpen={logOpen}
+              onToggle={() => setLogOpen((o) => !o)}
+              inline
+            />
+          )}
         </div>
       )}
 

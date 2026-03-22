@@ -59,3 +59,12 @@ export function patchPlayer(s, playerIndex, patch) {
   players[playerIndex] = { ...players[playerIndex], ...patch };
   return { ...s, players };
 }
+
+/** Set state.message AND append a structured entry to state.log. */
+export function setMessage(state, message) {
+  return {
+    ...state,
+    message,
+    log: [...(state.log ?? []), { day: state.day, phase: state.phase, message }],
+  };
+}

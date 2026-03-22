@@ -66,5 +66,6 @@ export function buildInitialState(config) {
     adventureDeck: shuffleArray(adventureDeck),
     cardSlots,
     message: null,
+    log: [],
   };
 }

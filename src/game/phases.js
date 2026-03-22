@@ -1,10 +1,10 @@
-import { expandCritters, getActivePlayer, patchActivePlayer } from './helpers';
+import { expandCritters, getActivePlayer, patchActivePlayer, setMessage } from './helpers';
 
 /** Check if conquest >= 10 → loss. */
 export function checkGameOver(s) {
   if (s.gameResult) return s;
   if (s.conquest >= 10) {
-    return { ...s, gameResult: 'loss', message: 'Conquest reached 10 — Mossflower has fallen.' };
+    return setMessage({ ...s, gameResult: 'loss' }, 'Conquest reached 10 — Mossflower has fallen.');
   }
   return s;
 }
@@ -25,21 +25,18 @@ export function advanceDayTurn(s) {
   if (next === -1) {
     return startDuskPhase(s);
   }
-  return { ...s, activePlayerIndex: next, message: `Player ${next + 1}'s turn.` };
+  return setMessage({ ...s, activePlayerIndex: next }, `Player ${next + 1}'s turn.`);
 }
 
 /** Find first player with band cubes for dusk, or skip to night if none. */
 export function startDuskPhase(s) {
   for (let i = 0; i < s.playerCount; i++) {
     if (s.players[i].band.length > 0) {
-      return {
-        ...s,
-        phase: 'dusk',
-        activePlayerIndex: i,
-        message: s.playerCount > 1
-          ? `Dusk — Player ${i + 1}, place your cubes.`
-          : s.message,
-      };
+      const base = { ...s, phase: 'dusk', activePlayerIndex: i };
+      if (s.playerCount > 1) {
+        return setMessage(base, `Dusk — Player ${i + 1}, place your cubes.`);
+      }
+      return { ...base, message: s.message };
     }
   }
   return enterNightAllPlayers(s);
@@ -49,13 +46,10 @@ export function startDuskPhase(s) {
 export function advanceDusk(s) {
   for (let i = s.activePlayerIndex + 1; i < s.playerCount; i++) {
     if (s.players[i].band.length > 0) {
-      return {
-        ...s,
-        activePlayerIndex: i,
-        message: s.playerCount > 1
-          ? `Dusk — Player ${i + 1}, place your cubes.`
-          : 'Dusk — place your cubes.',
-      };
+      const msg = s.playerCount > 1
+        ? `Dusk — Player ${i + 1}, place your cubes.`
+        : 'Dusk — place your cubes.';
+      return setMessage({ ...s, activePlayerIndex: i }, msg);
     }
   }
   return enterNightAllPlayers(s);
@@ -65,13 +59,11 @@ export function advanceDusk(s) {
 export function advanceNight(s) {
   const next = s.activePlayerIndex + 1;
   if (next < s.playerCount) {
-    return {
-      ...s,
-      activePlayerIndex: next,
-      message: s.playerCount > 1
-        ? `Night — Player ${next + 1}, return up to 2 cubes.`
-        : null,
-    };
+    const msg = s.playerCount > 1
+      ? `Night — Player ${next + 1}, return up to 2 cubes.`
+      : null;
+    const base = { ...s, activePlayerIndex: next };
+    return msg ? setMessage(base, msg) : { ...base, message: null };
   }
   return resolveNightEnd(s);
 }
@@ -165,14 +157,13 @@ export function enterNightAllPlayers(s) {
   const villain = applyVillainNight(s, spawn.conquest);
   const messages = [spawn.nightMessage, villain.villainMsg].filter(Boolean).join(' ');
 
-  let result = {
+  let result = setMessage({
     ...s,
     phase: 'night',
     activePlayerIndex: 0,
     cardSlots: spawn.cardSlots,
     conquest: villain.conquest,
-    message: messages,
-  };
+  }, messages);
 
   const players = result.players.map((p) => ({ ...p, nightReturns: 0 }));
   result.players = players;
@@ -222,7 +213,7 @@ export function resolveNightEnd(s) {
     passed: false,
   }));
 
-  return checkGameOver({
+  return checkGameOver(setMessage({
     ...s,
     phase: 'day',
     day: s.day + 1,
@@ -232,8 +223,7 @@ export function resolveNightEnd(s) {
     adventureDeck: newDeck,
     cardSlots: newCardSlots,
     conquest: newConquest,
-    message: `Day ${s.day + 1} begins. ${morning}`,
-  });
+  }, `Day ${s.day + 1} begins. ${morning}`));
 }
 
 /** After completing an action, increment actionsUsed and auto-pass if >= 2. */
