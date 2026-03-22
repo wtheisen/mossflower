@@ -517,10 +517,11 @@ export function cancelActionAction(s) {
   if (!p.action) return s;
 
   const wasBusted = p.busted;
-  let result = patchActivePlayer({ ...s, helpPhase: false }, {
-    action: null, bustCount: 0, busted: false,
-    drawBonuses: { power: 0, bagAdds: [], messages: [] },
-  });
+  const basePatch = { action: null, bustCount: 0, busted: false, drawBonuses: { power: 0, bagAdds: [], messages: [] } };
+  const cancelPatch = wasBusted
+    ? basePatch
+    : { ...basePatch, band: [], bag: shuffleArray([...p.bag, ...p.band]) };
+  let result = patchActivePlayer({ ...s, helpPhase: false }, cancelPatch);
   result.message = wasBusted ? 'Busted! Drawn cubes stay in your band.' : 'Action cancelled.';
 
   if (wasBusted) {
