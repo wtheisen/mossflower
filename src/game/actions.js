@@ -517,7 +517,7 @@ export function cancelActionAction(s) {
   if (!p.action) return s;
 
   const wasBusted = p.busted;
-  const basePatch = { action: null, bustCount: 0, busted: false, drawBonuses: { power: 0, bagAdds: [], messages: [] } };
+  const basePatch = { action: null, bustCount: 0, busted: false, currentLocation: null, drawBonuses: { power: 0, bagAdds: [], messages: [] } };
   const cancelPatch = wasBusted
     ? basePatch
     : { ...basePatch, band: [], bag: shuffleArray([...p.bag, ...p.band]) };
