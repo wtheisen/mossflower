@@ -19,7 +19,7 @@ export function startRecruitAction(s, cardId) {
   const card = s.adventureRow.find((c) => c.id === cardId);
   if (!card || card.type !== 'hero') return s;
   let result = patchActivePlayer(s, {
-    action: { type: 'recruit', targetId: cardId },
+    action: { type: 'recruit', targetId: cardId, cost: card.cost },
     bustCount: 0,
     busted: false,
     currentLocation: cardId,

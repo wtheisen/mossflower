@@ -138,6 +138,7 @@ export default function Band({
 }) {
   const inAction = !!action;
   const isCombat = action?.type === 'combat';
+  const canAffordRecruit = cubes.filter((c) => c === 'food').length >= (action?.cost ?? 0);
 
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData('cube-index', String(index));
@@ -260,8 +261,9 @@ export default function Band({
           )}
           {!busted && !isCombat && (
             <button
-              style={{ ...styles.btn, ...styles.btnRecruit }}
-              onClick={onRecruit}
+              style={{ ...styles.btn, ...styles.btnRecruit, ...(!canAffordRecruit ? styles.btnDisabled : {}) }}
+              onClick={canAffordRecruit ? onRecruit : undefined}
+              disabled={!canAffordRecruit}
             >
               Recruit
             </button>
