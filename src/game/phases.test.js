@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { spreadVermin, startDuskPhase } from './phases.js';
+import { spreadVermin, startDuskPhase, enterNightAllPlayers } from './phases.js';
 
 function makeLocation(id, name, slots = 3) {
   return { id, name, type: 'location', slots };
@@ -130,6 +130,40 @@ describe('spreadVermin', () => {
     const s = makeState({ discoveredLocations: [loc], cardSlots: original });
     spreadVermin(s, 1);
     expect(original['loc-1']).toBeUndefined();
+  });
+});
+
+describe('enterNightAllPlayers', () => {
+  it('includes final conquest count in message without a villain', () => {
+    const s = makeState({ conquest: 2 });
+    const result = enterNightAllPlayers(s);
+    expect(result.message).toContain('Conquest now 2/10.');
+  });
+
+  it('includes villain-adjusted conquest count in message (Cluny +1)', () => {
+    const s = makeState({
+      conquest: 2,
+      horde: { fortress: null, villain: { id: 'vil-cluny', name: 'Cluny the Scourge' }, fortressCleared: false, fortressDeck: [] },
+    });
+    const result = enterNightAllPlayers(s);
+    expect(result.message).toContain('Conquest now 3/10.');
+    expect(result.conquest).toBe(3);
+  });
+
+  it('does not show stale pre-villain conquest count in message', () => {
+    const s = makeState({
+      conquest: 2,
+      horde: { fortress: null, villain: { id: 'vil-cluny', name: 'Cluny the Scourge' }, fortressCleared: false, fortressDeck: [] },
+    });
+    const result = enterNightAllPlayers(s);
+    expect(result.message).not.toContain('Conquest now 2/10.');
+  });
+
+  it('sets phase to night and resets nightReturns', () => {
+    const s = makeState({ players: [makePlayer({ nightReturns: 3 })] });
+    const result = enterNightAllPlayers(s);
+    expect(result.phase).toBe('night');
+    expect(result.players[0].nightReturns).toBe(0);
   });
 });
 

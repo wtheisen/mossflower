@@ -141,7 +141,7 @@ export function spreadVermin(state, count) {
 function spawnNightVermin(state) {
   const { cardSlots, conquestDelta, log } = spreadVermin(state, state.conquest);
   const newConquest = state.conquest + conquestDelta;
-  const message = `Night: spawned ${state.conquest} vermin. Conquest now ${newConquest}/10. ${log.join('; ')}.`;
+  const message = `Night: spawned ${state.conquest} vermin. ${log.join('; ')}.`;
   return { cardSlots, conquest: newConquest, nightMessage: message };
 }
 
@@ -163,7 +163,7 @@ function applyVillainNight(state, conquest) {
 export function enterNightAllPlayers(s) {
   const spawn = spawnNightVermin(s);
   const villain = applyVillainNight(s, spawn.conquest);
-  const messages = [spawn.nightMessage, villain.villainMsg].filter(Boolean).join(' ');
+  const messages = [spawn.nightMessage, villain.villainMsg, `Conquest now ${villain.conquest}/10.`].filter(Boolean).join(' ');
 
   let result = {
     ...s,
