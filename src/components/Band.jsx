@@ -194,6 +194,10 @@ export default function Band({
         </div>
       )}
 
+      {isDusk && message && (
+        <p style={styles.message}>{message}</p>
+      )}
+
       <div className="band__cubes" style={styles.cubes}>
         {cubes.length === 0 ? (
           <span style={styles.empty}>
@@ -317,7 +321,7 @@ export default function Band({
         </div>
       )}
 
-      {message && (
+      {message && !isDusk && (
         <p style={{ ...styles.message, ...(busted ? styles.bustMessage : {}) }}>
           {message}
         </p>

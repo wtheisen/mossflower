@@ -546,6 +546,24 @@ describe('resolveCombatAction', () => {
     const result = resolveCombatAction(s);
     expect(result.conquest).toBe(4);
   });
+
+  it('preserves combat result message into dusk when combat is the 2nd action', () => {
+    const loc = { id: 'loc-1', name: 'Dark Forest', type: 'location' };
+    const s = makeState({
+      conquest: 3,
+      discoveredLocations: [loc],
+      cardSlots: { 'loc-1': [] },
+      players: [makePlayer({
+        actionsUsed: 1, // this is the 2nd action — will trigger dusk
+        action: { type: 'combat', targetId: 'loc-1', verminAdded: 0 },
+        band: ['mouse', 'mouse'], // power=2, vermin=0 → victory
+      })],
+    });
+    const result = resolveCombatAction(s);
+    expect(result.phase).toBe('dusk');
+    expect(result.message).toContain('Victory');
+    expect(result.message).toContain('Dark Forest');
+  });
 });
 
 // ── confirmRecruitAction ──────────────────────────────
