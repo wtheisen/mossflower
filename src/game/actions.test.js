@@ -70,7 +70,7 @@ describe('startRecruitAction', () => {
     const s = makeState({ adventureRow: [hero] });
     const result = startRecruitAction(s, 'hero-1');
     const p = result.players[0];
-    expect(p.action).toEqual({ type: 'recruit', targetId: 'hero-1' });
+    expect(p.action).toEqual({ type: 'recruit', targetId: 'hero-1', cost: 2 });
     expect(p.bustCount).toBe(0);
     expect(p.busted).toBe(false);
     expect(p.currentLocation).toBe('hero-1');
@@ -102,6 +102,13 @@ describe('startRecruitAction', () => {
     const hero = { id: 'hero-1', name: 'Matthias', type: 'hero', cost: 2, affinity: 'mouse' };
     const s = makeState({ adventureRow: [hero], phase: 'night' });
     expect(startRecruitAction(s, 'hero-1')).toBe(s);
+  });
+
+  it('includes hero cost in action object', () => {
+    const hero = { id: 'hero-1', name: 'Matthias', type: 'hero', cost: 3, affinity: 'mouse' };
+    const s = makeState({ adventureRow: [hero] });
+    const result = startRecruitAction(s, 'hero-1');
+    expect(result.players[0].action.cost).toBe(3);
   });
 });
 
@@ -508,5 +515,71 @@ describe('resolveCombatAction', () => {
     });
     const result = resolveCombatAction(s);
     expect(result.conquest).toBe(4);
+  });
+});
+
+// ── confirmRecruitAction ──────────────────────────────
+
+describe('confirmRecruitAction', () => {
+  const hero = { id: 'hero-1', name: 'Matthias', type: 'hero', cost: 2, affinity: 'mouse' };
+
+  it('succeeds when player has enough food', () => {
+    const s = makeState({
+      adventureRow: [hero],
+      cardSlots: { 'hero-1': [] },
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1', cost: 2 },
+        band: ['food', 'food', 'mouse'],
+      })],
+    });
+    const result = confirmRecruitAction(s);
+    expect(result.players[0].action).toBeNull();
+    expect(result.players[0].tableau).toContainEqual(hero);
+    expect(result.players[0].band.filter((c) => c === 'food').length).toBe(0);
+  });
+
+  it('returns message when player has insufficient food', () => {
+    const s = makeState({
+      adventureRow: [hero],
+      cardSlots: { 'hero-1': [] },
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1', cost: 2 },
+        band: ['food', 'mouse'], // only 1 food, need 2
+      })],
+    });
+    const result = confirmRecruitAction(s);
+    expect(result.message).toContain('food');
+    expect(result.players[0].action).not.toBeNull();
+  });
+
+  it('returns message when player has no food at all', () => {
+    const s = makeState({
+      adventureRow: [hero],
+      cardSlots: { 'hero-1': [] },
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1', cost: 2 },
+        band: ['mouse', 'mouse'],
+      })],
+    });
+    const result = confirmRecruitAction(s);
+    expect(result.message).toContain('food');
+    expect(result.players[0].tableau).toHaveLength(0);
+  });
+
+  it('returns s unchanged when player is busted', () => {
+    const s = makeState({
+      adventureRow: [hero],
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1', cost: 2 },
+        band: ['food', 'food'],
+        busted: true,
+      })],
+    });
+    expect(confirmRecruitAction(s)).toBe(s);
+  });
+
+  it('returns s unchanged when there is no recruit action', () => {
+    const s = makeState();
+    expect(confirmRecruitAction(s)).toBe(s);
   });
 });
