@@ -1,5 +1,5 @@
 import { BUST_TYPES, shuffleArray } from './constants';
-import { getActivePlayer, patchActivePlayer, patchPlayer, countVermin } from './helpers';
+import { getActivePlayer, patchActivePlayer, patchPlayer, countVermin, setMessage } from './helpers';
 import {
   getPlayerBustThreshold, evaluateDrawTriggers, calculatePower,
   getVerminReduction, getCombatWinFood, createAbilityCtx,
@@ -25,8 +25,7 @@ export function startRecruitAction(s, cardId) {
     currentLocation: cardId,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
   });
-  result.message = `Recruiting ${card.name} (cost: ${card.cost} food) — draw cubes from your bag.`;
-  return result;
+  return setMessage(result, `Recruiting ${card.name} (cost: ${card.cost} food) — draw cubes from your bag.`);
 }
 
 export function useLocationActionAction(s, cardId) {
@@ -57,8 +56,7 @@ export function useLocationActionAction(s, cardId) {
       currentLocation: cardId,
       drawBonuses: { power: 0, bagAdds: [], messages: [] },
     });
-    result.message = `Combat at ${loc.name}! ${verminOnCard} vermin added to your bag. Draw at least ${verminOnCard} cubes.`;
-    return result;
+    return setMessage(result, `Combat at ${loc.name}! ${verminOnCard} vermin added to your bag. Draw at least ${verminOnCard} cubes.`);
   }
 
   const ability = ABILITIES[cardId];
@@ -70,8 +68,7 @@ export function useLocationActionAction(s, cardId) {
   ability.onAction(ctx);
   const { playerPatch, message } = ctx._apply();
 
-  let result = patchActivePlayer(s, { ...playerPatch, currentLocation: cardId });
-  result.message = message;
+  let result = setMessage(patchActivePlayer(s, { ...playerPatch, currentLocation: cardId }), message);
 
   const inAdventureRow = s.adventureRow.some((c) => c.id === cardId);
   if (inAdventureRow) {
@@ -84,12 +81,11 @@ export function useLocationActionAction(s, cardId) {
 
   if (cardId === 'redwall-infirmary' && result.conquest > 0) {
     const spread = spreadVermin(result, result.conquest);
-    result = {
+    result = setMessage({
       ...result,
       cardSlots: spread.cardSlots,
       conquest: result.conquest + spread.conquestDelta,
-      message: `${result.message} Vermin spread (${result.conquest}): ${spread.log.join('; ')}.${spread.conquestDelta > 0 ? ' Overflow → conquest +1.' : ''}`,
-    };
+    }, `${result.message} Vermin spread (${result.conquest}): ${spread.log.join('; ')}.${spread.conquestDelta > 0 ? ' Overflow → conquest +1.' : ''}`);
     result = checkGameOver(result);
     if (result.gameResult) return result;
   }
@@ -158,7 +154,7 @@ export function drawCubeAction(s) {
       busted: false,
       drawBonuses: { power: 0, bagAdds: [], messages: [] },
     });
-    result.message = `BUST at ${locName}! Drew "${drawn}" — ${bustThreshold} bad cubes. Vermin return, conquest +1 (now ${s.conquest + 1}).${triggerMsg}`;
+    result = setMessage(result, `BUST at ${locName}! Drew "${drawn}" — ${bustThreshold} bad cubes. Vermin return, conquest +1 (now ${s.conquest + 1}).${triggerMsg}`);
 
     result = checkGameOver(result);
     if (!result.gameResult) result = countAction(result);
@@ -179,7 +175,7 @@ export function drawCubeAction(s) {
       busted: false,
       drawBonuses: { power: 0, bagAdds: [], messages: [] },
     });
-    result.message = `BUST! Drew "${drawn}" — ${bustThreshold} bad cubes. Cubes stay in your band for dusk.${triggerMsg}`;
+    result = setMessage(result, `BUST! Drew "${drawn}" — ${bustThreshold} bad cubes. Cubes stay in your band for dusk.${triggerMsg}`);
     result = countAction(result);
     return result;
   } else {
@@ -187,12 +183,11 @@ export function drawCubeAction(s) {
     message = `Drew "${drawn}" — Power: ${power}. ${newBand.length} cubes drawn.${badWarning}${triggerMsg}`;
   }
 
-  let result = patchActivePlayer(s, {
+  const result = patchActivePlayer(s, {
     bag: newBag, band: newBand, bustCount: newBustCount, busted,
     drawBonuses: newDrawBonuses,
   });
-  result.message = message;
-  return result;
+  return setMessage(result, message);
 }
 
 // ── Helping Hands ──────────────────────────────────
@@ -206,7 +201,7 @@ export function requestHelpAction(s) {
   const players = s.players.map((pl, i) =>
     i === s.activePlayerIndex ? pl : { ...pl, helpBand: [], helpBustCount: 0, helpBusted: false },
   );
-  return { ...s, players, helpPhase: true, message: 'Help phase — other players may draw from their bags to assist.' };
+  return setMessage({ ...s, players, helpPhase: true }, 'Help phase — other players may draw from their bags to assist.');
 }
 
 export function helperDrawCubeAction(s, helperIndex) {
@@ -230,14 +225,13 @@ export function helperDrawCubeAction(s, helperIndex) {
   const bustMsg = busted ? ` BUST! Helper's cubes still count.` : '';
   const message = `Player ${helperIndex + 1} drew "${drawn}".${badWarning}${bustMsg}`;
 
-  let result = patchPlayer(s, helperIndex, {
+  const result = patchPlayer(s, helperIndex, {
     bag: newBag,
     helpBand: newHelpBand,
     helpBustCount: newBustCount,
     helpBusted: busted,
   });
-  result.message = message;
-  return result;
+  return setMessage(result, message);
 }
 
 export function helperDoneAction(s, helperIndex) {
@@ -270,8 +264,7 @@ export function helperDoneAction(s, helperIndex) {
 
   const transferMsg = toTransfer.length > 0 ? `${toTransfer.join(', ')} added to active player's band.` : 'No cubes to transfer.';
   const returnMsg = toReturn.length > 0 ? ` ${toReturn.length} inexperience returned to helper's bag.` : '';
-  result.message = `Player ${helperIndex + 1} done helping. ${transferMsg}${returnMsg}`;
-  return result;
+  return setMessage(result, `Player ${helperIndex + 1} done helping. ${transferMsg}${returnMsg}`);
 }
 
 export function skipHelpAction(s) {
@@ -296,7 +289,7 @@ export function skipHelpAction(s) {
       result = patchActivePlayer(result, { band: newActiveBand });
     }
   }
-  return { ...result, helpPhase: false, message: 'Help phase ended. Resolve your action.' };
+  return setMessage({ ...result, helpPhase: false }, 'Help phase ended. Resolve your action.');
 }
 
 export function confirmRecruitAction(s) {
@@ -357,7 +350,7 @@ export function confirmRecruitAction(s) {
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
   });
   const inexMsg = removed > 0 ? ` Power ${power} removed ${removed} inexperience!` : '';
-  result.message = `Recruited ${target.name}! Spent ${target.cost} food.${inexMsg}`;
+  result = setMessage(result, `Recruited ${target.name}! Spent ${target.cost} food.${inexMsg}`);
 
   result = countAction(result);
   return result;
@@ -403,8 +396,7 @@ export function resolveCombatAction(s) {
       result = { ...s, conquest: newConquest };
       result = patchActivePlayer(result, { band: newBand, ...clearAction });
       result.gameResult = 'win';
-      result.message = `Victory! ${locName} is defeated! Mossflower is saved!`;
-      return result;
+      return setMessage(result, `Victory! ${locName} is defeated! Mossflower is saved!`);
     }
 
     if (combatTarget === 'fortress') {
@@ -424,15 +416,13 @@ export function resolveCombatAction(s) {
           () => ({ type: 'vermin' }),
         );
         result = { ...s, conquest: newConquest, horde: newHorde, cardSlots: newCardSlots };
-        result = patchActivePlayer(result, { band: newBand, ...clearAction });
-        result.message = `Fortress ${locName} cleared! Power ${power} vs ${verm} vermin. Conquest -${conquestReduction} (now ${newConquest}). Next fortress: ${next.name}.`;
+        result = setMessage(patchActivePlayer(result, { band: newBand, ...clearAction }), `Fortress ${locName} cleared! Power ${power} vs ${verm} vermin. Conquest -${conquestReduction} (now ${newConquest}). Next fortress: ${next.name}.`);
       } else {
         newHorde.fortress = null;
         newHorde.fortressDeck = [];
         newHorde.fortressCleared = true;
         result = { ...s, conquest: newConquest, horde: newHorde, cardSlots: newCardSlots };
-        result = patchActivePlayer(result, { band: newBand, ...clearAction });
-        result.message = `Fortress ${locName} cleared! All fortresses destroyed! The villain is now vulnerable. Conquest -${conquestReduction} (now ${newConquest}).`;
+        result = setMessage(patchActivePlayer(result, { band: newBand, ...clearAction }), `Fortress ${locName} cleared! All fortresses destroyed! The villain is now vulnerable. Conquest -${conquestReduction} (now ${newConquest}).`);
       }
       result = countAction(result);
       return result;
@@ -454,8 +444,7 @@ export function resolveCombatAction(s) {
     const foodNote = winFood > 0 ? ` Forager added ${winFood} food to ${locName}.` : '';
 
     result = { ...s, conquest: newConquest, cardSlots: newCardSlots };
-    result = patchActivePlayer(result, { band: newBand, ...clearAction });
-    result.message = `Victory at ${locName}! Power ${power} vs ${verm} vermin.${reductionNote}${overkillNote} (now ${newConquest}).${foodNote}`;
+    result = setMessage(patchActivePlayer(result, { band: newBand, ...clearAction }), `Victory at ${locName}! Power ${power} vs ${verm} vermin.${reductionNote}${overkillNote} (now ${newConquest}).${foodNote}`);
   } else {
     const newCardSlots = { ...s.cardSlots };
     const existing = newCardSlots[targetId] ?? [];
@@ -466,8 +455,7 @@ export function resolveCombatAction(s) {
     const newBand = p.band.filter((c) => c !== 'vermin');
 
     result = { ...s, cardSlots: newCardSlots, conquest: s.conquest + 1 };
-    result = patchActivePlayer(result, { band: newBand, ...clearAction });
-    result.message = `Defeated at ${locName}. Power ${power} vs ${verm} vermin. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
+    result = setMessage(patchActivePlayer(result, { band: newBand, ...clearAction }), `Defeated at ${locName}. Power ${power} vs ${verm} vermin. Vermin return, conquest +1 (now ${s.conquest + 1}).`);
 
     result = checkGameOver(result);
     if (result.gameResult) return result;
@@ -505,7 +493,7 @@ export function forfeitCombatAction(s) {
     busted: false,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
   });
-  result.message = `Forfeited combat at ${locName}. Vermin return, conquest +1 (now ${s.conquest + 1}).`;
+  result = setMessage(result, `Forfeited combat at ${locName}. Vermin return, conquest +1 (now ${s.conquest + 1}).`);
 
   result = checkGameOver(result);
   if (!result.gameResult) result = countAction(result);
@@ -521,8 +509,10 @@ export function cancelActionAction(s) {
   const cancelPatch = wasBusted
     ? basePatch
     : { ...basePatch, band: [], bag: shuffleArray([...p.bag, ...p.band]) };
-  let result = patchActivePlayer({ ...s, helpPhase: false }, cancelPatch);
-  result.message = wasBusted ? 'Busted! Drawn cubes stay in your band.' : 'Action cancelled.';
+  let result = setMessage(
+    patchActivePlayer({ ...s, helpPhase: false }, cancelPatch),
+    wasBusted ? 'Busted! Drawn cubes stay in your band.' : 'Action cancelled.',
+  );
 
   if (wasBusted) {
     result = countAction(result);
@@ -573,9 +563,10 @@ export function dropCubeAction(s, cardId, cubeIndex) {
     const doneMsg = newBand.length === 0
       ? 'All cubes placed!'
       : `Placed ${cubeType} worker at ${loc.name}. ${newBand.length} cube(s) remaining.`;
-    let result = { ...s, cardSlots: newCardSlots };
-    result = patchActivePlayer(result, { band: newBand });
-    result.message = doneMsg;
+    let result = setMessage(
+      patchActivePlayer({ ...s, cardSlots: newCardSlots }, { band: newBand }),
+      doneMsg,
+    );
     if (newBand.length === 0) {
       result = advanceDusk(result);
     }
@@ -600,8 +591,10 @@ export function dropCubeAction(s, cardId, cubeIndex) {
     const doneMsg = newBand.length === 0
       ? 'All cubes placed!'
       : `Placed ${cubeType} on ${ability.name}. ${newBand.length} cube(s) remaining.`;
-    let result = patchActivePlayer(s, { band: newBand, abilityPlacements: newAbilityPlacements });
-    result.message = doneMsg;
+    let result = setMessage(
+      patchActivePlayer(s, { band: newBand, abilityPlacements: newAbilityPlacements }),
+      doneMsg,
+    );
     if (newBand.length === 0) {
       result = advanceDusk(result);
     }
@@ -628,8 +621,10 @@ export function dropCubeAction(s, cardId, cubeIndex) {
   const doneMsg = newBand.length === 0
     ? 'All cubes placed!'
     : `Placed ${cubeType} on ${tableauCard.name}. ${newBand.length} cube(s) remaining.`;
-  let result = patchActivePlayer(s, { band: newBand, placements: newPlacements });
-  result.message = doneMsg;
+  let result = setMessage(
+    patchActivePlayer(s, { band: newBand, placements: newPlacements }),
+    doneMsg,
+  );
   if (newBand.length === 0) {
     result = advanceDusk(result);
   }
@@ -648,8 +643,7 @@ export function discardFoodAction(s, cubeIndex) {
   const doneMsg = newBand.length === 0
     ? 'All cubes placed!'
     : `Returned food to supply. ${newBand.length} cube(s) remaining.`;
-  let result = patchActivePlayer(s, { band: newBand });
-  result.message = doneMsg;
+  let result = setMessage(patchActivePlayer(s, { band: newBand }), doneMsg);
   if (newBand.length === 0) {
     result = advanceDusk(result);
   }
@@ -684,9 +678,7 @@ export function returnCubeToBagAction(s, cardId, slotIndex) {
     const abilityDef = p.champion.abilities?.find((a) => a.id === cardId);
     const cardName = abilityDef?.name ?? cardId;
     const patch = { abilityPlacements: newAbilityPlacements, bag: shuffleArray(newBag), nightReturns: returns };
-    let result = patchActivePlayer(s, patch);
-    result.message = `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`;
-    return result;
+    return setMessage(patchActivePlayer(s, patch), `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`);
   } else {
     const newPlacements = {
       ...p.placements,
@@ -696,9 +688,7 @@ export function returnCubeToBagAction(s, cardId, slotIndex) {
       ? p.champion.name
       : p.tableau.find((c) => c.id === cardId)?.name ?? cardId;
     const patch = { placements: newPlacements, bag: shuffleArray(newBag), nightReturns: returns };
-    let result = patchActivePlayer(s, patch);
-    result.message = `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`;
-    return result;
+    return setMessage(patchActivePlayer(s, patch), `Returned ${cube.type} from ${cardName} to bag. ${2 - returns} return(s) left.`);
   }
 }
 
@@ -734,8 +724,7 @@ export function startFortressCombatAction(s, fortressId) {
     currentLocation: fortressId,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
   });
-  result.message = `Attacking ${fortress.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
-  return result;
+  return setMessage(result, `Attacking ${fortress.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`);
 }
 
 export function startVillainCombatAction(s, villainId) {
@@ -766,6 +755,5 @@ export function startVillainCombatAction(s, villainId) {
     currentLocation: villainId,
     drawBonuses: { power: 0, bagAdds: [], messages: [] },
   });
-  result.message = `Final battle with ${villain.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`;
-  return result;
+  return setMessage(result, `Final battle with ${villain.name}! ${verminCount} vermin added to your bag. Draw cubes to fight!`);
 }
