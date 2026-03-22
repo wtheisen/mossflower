@@ -47,16 +47,23 @@ export function useLocationActionAction(s, cardId) {
     const newBag = [...p.bag];
     for (let i = 0; i < verminOnCard; i++) newBag.push('vermin');
 
+    const verminAdded = cardId === 'loc-salamandastron'
+      ? Math.max(0, verminOnCard - 1)
+      : verminOnCard;
+
     let result = { ...s, cardSlots: newCardSlots };
     result = patchActivePlayer(result, {
       bag: shuffleArray(newBag),
-      action: { type: 'combat', targetId: cardId, verminAdded: verminOnCard },
+      action: { type: 'combat', targetId: cardId, verminAdded },
       bustCount: 0,
       busted: false,
       currentLocation: cardId,
       drawBonuses: { power: 0, bagAdds: [], messages: [] },
     });
-    return setMessage(result, `Combat at ${loc.name}! ${verminOnCard} vermin added to your bag. Draw at least ${verminOnCard} cubes.`);
+    const salamandastronNote = cardId === 'loc-salamandastron' && verminOnCard > verminAdded
+      ? ` Salamandastron reduces required draws by 1.`
+      : '';
+    return setMessage(result, `Combat at ${loc.name}! ${verminOnCard} vermin added to your bag. Draw at least ${verminAdded} cubes.${salamandastronNote}`);
   }
 
   const ability = ABILITIES[cardId];
