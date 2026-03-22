@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
 import CubeChip from './CubeChip';
 
 const styles = {
@@ -135,10 +136,45 @@ export default function Band({
   canEndDay, onEndDay, isDusk, isNight, nightReturns, onEndNight,
   onDiscardFood, helpPhase, onDragCubeType,
   selectedCubeIndex, onSelectCube,
+  onBust,
 }) {
   const inAction = !!action;
   const isCombat = action?.type === 'combat';
   const canAffordRecruit = cubes.filter((c) => c === 'food').length >= (action?.cost ?? 0);
+
+  // Animation state: track which cube index is animating and its phase
+  const [animState, setAnimState] = useState(null); // { index, phase: 'wobble' | 'reveal' }
+  const prevCubesLenRef = useRef(cubes.length);
+  const isAnimating = animState !== null;
+
+  // Detect when a new cube appears in the band
+  useEffect(() => {
+    const prevLen = prevCubesLenRef.current;
+    prevCubesLenRef.current = cubes.length;
+    if (cubes.length > prevLen && inAction) {
+      const newIndex = cubes.length - 1;
+      setAnimState({ index: newIndex, phase: 'wobble' });
+    }
+  }, [cubes.length, inAction]);
+
+  // When wobble ends, transition to reveal phase
+  const handleWobbleEnd = useCallback((e) => {
+    // Only respond to the wobble animation ending (not color cycle)
+    if (e.animationName === 'cubeWobble') {
+      setAnimState((prev) => prev ? { ...prev, phase: 'reveal' } : null);
+    }
+  }, []);
+
+  // When reveal ends, clear animation and fire bust if needed
+  const handleRevealEnd = useCallback(() => {
+    setAnimState(null);
+    if (busted && onBust) onBust();
+  }, [busted, onBust]);
+
+  // Wrapped onDraw that triggers the state change first
+  const handleDraw = useCallback(() => {
+    if (onDraw && !isAnimating) onDraw();
+  }, [onDraw, isAnimating]);
 
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData('cube-index', String(index));
@@ -218,7 +254,15 @@ export default function Band({
                 ...(isDusk ? { padding: '6px', minWidth: '32px', minHeight: '32px', justifyContent: 'center', borderRadius: '6px', background: selectedCubeIndex === i ? 'rgba(184, 134, 11, 0.12)' : 'transparent' } : {}),
               }}
             >
-              <CubeChip cubeType={type} />
+              <CubeChip
+                cubeType={type}
+                animating={animState?.index === i ? animState.phase : null}
+                onAnimationEnd={
+                  animState?.index === i
+                    ? (animState.phase === 'wobble' ? handleWobbleEnd : handleRevealEnd)
+                    : undefined
+                }
+              />
               {isDusk && type === 'food' && onDiscardFood && (
                 <button
                   onClick={() => onDiscardFood(i)}
@@ -255,10 +299,10 @@ export default function Band({
               style={{
                 ...styles.btn,
                 ...styles.btnDraw,
-                ...(bagEmpty ? styles.btnDisabled : {}),
+                ...((bagEmpty || isAnimating) ? styles.btnDisabled : {}),
               }}
-              onClick={onDraw}
-              disabled={bagEmpty}
+              onClick={handleDraw}
+              disabled={bagEmpty || isAnimating}
             >
               Draw Cube
             </button>
