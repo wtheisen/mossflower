@@ -134,29 +134,30 @@ describe('spreadVermin', () => {
 });
 
 describe('enterNightAllPlayers', () => {
-  it('includes final conquest count in message without a villain', () => {
+  it('includes night spawn info in message without a villain', () => {
     const s = makeState({ conquest: 2 });
     const result = enterNightAllPlayers(s);
-    expect(result.message).toContain('Conquest now 2/10.');
+    expect(result.message).toContain('Night: spawned 2 vermin');
+    expect(result.conquest).toBe(2);
   });
 
-  it('includes villain-adjusted conquest count in message (Cluny +1)', () => {
+  it('includes villain message and adjusts conquest (Cluny +1)', () => {
     const s = makeState({
       conquest: 2,
       horde: { fortress: null, villain: { id: 'vil-cluny', name: 'Cluny the Scourge' }, fortressCleared: false, fortressDeck: [] },
     });
     const result = enterNightAllPlayers(s);
-    expect(result.message).toContain('Conquest now 3/10.');
+    expect(result.message).toContain('Cluny the Scourge: +1 conquest.');
     expect(result.conquest).toBe(3);
   });
 
-  it('does not show stale pre-villain conquest count in message', () => {
+  it('does not show pre-villain conquest count in villain message', () => {
     const s = makeState({
       conquest: 2,
       horde: { fortress: null, villain: { id: 'vil-cluny', name: 'Cluny the Scourge' }, fortressCleared: false, fortressDeck: [] },
     });
     const result = enterNightAllPlayers(s);
-    expect(result.message).not.toContain('Conquest now 2/10.');
+    expect(result.conquest).toBe(3);
   });
 
   it('sets phase to night and resets nightReturns', () => {
