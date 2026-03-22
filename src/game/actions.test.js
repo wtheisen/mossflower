@@ -129,6 +129,36 @@ describe('cancelActionAction', () => {
     const result = cancelActionAction(s);
     expect(result.message).toContain('Busted');
   });
+
+  it('returns band cubes to bag when not busted', () => {
+    const s = makeState({
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1' },
+        bag: ['food'],
+        band: ['mouse', 'mouse'],
+      })],
+    });
+    const result = cancelActionAction(s);
+    const p = result.players[0];
+    expect(p.band).toEqual([]);
+    expect(p.bag).toHaveLength(3);
+    expect(p.bag).toEqual(expect.arrayContaining(['food', 'mouse', 'mouse']));
+  });
+
+  it('keeps band cubes when busted', () => {
+    const s = makeState({
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1' },
+        busted: true,
+        bag: ['food'],
+        band: ['mouse', 'mouse'],
+      })],
+    });
+    const result = cancelActionAction(s);
+    const p = result.players[0];
+    expect(p.band).toEqual(['mouse', 'mouse']);
+    expect(p.bag).toEqual(['food']);
+  });
 });
 
 // ── drawCubeAction ──────────────────────────────────
