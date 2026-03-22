@@ -165,36 +165,8 @@
   }
 
   /* ── AdventureRow ── */
-  .adventure-row {
-    padding: 2px 0 !important;
-  }
-  .adventure-row__label {
-    font-size: 8px !important;
-    margin-bottom: 1px !important;
-  }
   .adventure-row__cards {
-    justify-content: flex-start !important;
-    gap: 3px !important;
     padding-bottom: 0 !important;
-  }
-
-  /* ── DiscoveredLocations ── */
-  .discovered-locations {
-    padding: 1px 0 !important;
-  }
-  .discovered-locations__label {
-    font-size: 8px !important;
-    margin-bottom: 1px !important;
-  }
-  .discovered-locations__cards {
-    justify-content: flex-start !important;
-    gap: 3px !important;
-  }
-
-  /* ── HordeArea ── */
-  .horde-area {
-    padding: 3px 4px !important;
-    gap: 3px !important;
   }
 
   /* ── PlayerTableau ── */
@@ -283,6 +255,45 @@
 
 
 /* ============================================================
+   SHARED PHONE RULES  (both landscape and portrait)
+   ============================================================ */
+@media (max-height: 500px) and (max-width: 900px), (max-width: 500px) and (orientation: portrait) {
+
+  /* ── AdventureRow ── */
+  .adventure-row {
+    padding: 2px 0 !important;
+  }
+  .adventure-row__label {
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
+  }
+  .adventure-row__cards {
+    justify-content: flex-start !important;
+    gap: 3px !important;
+  }
+
+  /* ── DiscoveredLocations ── */
+  .discovered-locations {
+    padding: 1px 0 !important;
+  }
+  .discovered-locations__label {
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
+  }
+  .discovered-locations__cards {
+    justify-content: flex-start !important;
+    gap: 3px !important;
+  }
+
+  /* ── HordeArea ── */
+  .horde-area {
+    padding: 3px 4px !important;
+    gap: 3px !important;
+  }
+}
+
+
+/* ============================================================
    PHONE PORTRAIT  (iPhone SE portrait = 375×667)
    Stack columns vertically, compact everything
    ============================================================ */
@@ -300,36 +311,6 @@
   }
   .status-bar__ornament {
     display: none !important;
-  }
-
-  /* ── AdventureRow ── */
-  .adventure-row {
-    padding: 2px 0 !important;
-  }
-  .adventure-row__label {
-    font-size: 8px !important;
-    margin-bottom: 1px !important;
-  }
-  .adventure-row__cards {
-    justify-content: flex-start !important;
-    gap: 3px !important;
-  }
-  .discovered-locations {
-    padding: 1px 0 !important;
-  }
-  .discovered-locations__label {
-    font-size: 8px !important;
-    margin-bottom: 1px !important;
-  }
-  .discovered-locations__cards {
-    justify-content: flex-start !important;
-    gap: 3px !important;
-  }
-
-  /* ── HordeArea ── */
-  .horde-area {
-    padding: 3px 4px !important;
-    gap: 3px !important;
   }
 
   /* ── PlayerTableau ── */
