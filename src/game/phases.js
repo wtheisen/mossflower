@@ -92,19 +92,31 @@ export function spreadVermin(state, count) {
     return { cardSlots, conquestDelta: 0, log: [] };
   }
 
+  const adventureRowIds = new Set(state.adventureRow.map((c) => c.id));
+  const targetNames = targets.map((c) => c.name);
+  const hasDuplicateNames = targetNames.length !== new Set(targetNames).size;
+
+  function labelFor(target) {
+    if (hasDuplicateNames && adventureRowIds.has(target.id)) {
+      return `${target.name} (row)`;
+    }
+    return target.name;
+  }
+
   const log = [];
   let hadOverflow = false;
 
   for (let i = 0; i < count; i++) {
     const target = targets[i % targets.length];
     const slots = cardSlots[target.id] ?? [];
+    const label = labelFor(target);
 
     if (target.type === 'location') {
       const workerIdx = slots.findIndex((c) => c.type !== 'vermin');
       if (workerIdx !== -1) {
         const removed = slots.splice(workerIdx, 1)[0];
         cardSlots[target.id] = slots;
-        log.push(`${target.name}: worker (${removed.type}) absorbed a vermin`);
+        log.push(`${label}: worker (${removed.type}) absorbed a vermin`);
         continue;
       }
     }
@@ -113,13 +125,13 @@ export function spreadVermin(state, count) {
     const currentVermin = (cardSlots[target.id] ?? []).filter((c) => c.type === 'vermin').length;
     if (currentVermin >= limit) {
       hadOverflow = true;
-      log.push(`${target.name}: vermin overflow`);
+      log.push(`${label}: vermin overflow`);
       continue;
     }
 
     if (!cardSlots[target.id]) cardSlots[target.id] = [];
     cardSlots[target.id].push({ type: 'vermin' });
-    log.push(`${target.name}: +1 vermin`);
+    log.push(`${label}: +1 vermin`);
   }
 
   const conquestDelta = hadOverflow ? 1 : 0;
