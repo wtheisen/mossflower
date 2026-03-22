@@ -10,7 +10,7 @@ import {
   spreadVermin, countAction,
 } from '../game/phases';
 import { buildInitialState } from '../game/setup';
-import { ABILITIES } from '../data/abilities';
+import { ABILITIES } from '../game/abilities';
 
 // Re-export for backward compatibility
 export { PLAYER_COLORS } from '../game/constants';

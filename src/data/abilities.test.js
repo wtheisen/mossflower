@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { ABILITIES } from './abilities.js';
+import { describe, it, expect } from 'vitest';
+import { ABILITIES, calculatePower, getVerminReduction, getCombatWinFood } from '../game/abilities.js';
 
 /** Create a mock ctx matching the ability context interface. */
 function mockCtx({ bag = [] } = {}) {
@@ -81,5 +81,98 @@ describe('loc-great-hall draws 2 cubes (reference pattern)', () => {
     const ctx = mockCtx({ bag: ['mouse', 'food'] });
     ABILITIES['loc-great-hall'].onAction(ctx);
     expect(ctx._band).toEqual(['mouse', 'food']);
+  });
+});
+
+describe('great-hall-base', () => {
+  it('adds 1 food to band', () => {
+    const ctx = mockCtx();
+    ABILITIES['great-hall-base'].onAction(ctx);
+    expect(ctx._band).toEqual(['food']);
+    expect(ctx._message).toContain('Great Hall');
+  });
+});
+
+describe('redwall-infirmary', () => {
+  it('removes all wounds from band', () => {
+    const ctx = mockCtx();
+    ctx.addToBand('wound');
+    ctx.addToBand('wound');
+    ctx.addToBand('mouse');
+    ABILITIES['redwall-infirmary'].onAction(ctx);
+    expect(ctx._band).not.toContain('wound');
+    expect(ctx._message).toContain('2 wound(s)');
+  });
+
+  it('reports no wounds when band is clean', () => {
+    const ctx = mockCtx();
+    ABILITIES['redwall-infirmary'].onAction(ctx);
+    expect(ctx._message).toContain('No wounds');
+  });
+});
+
+describe('hero-redwall-sentry combatBonus', () => {
+  const ability = ABILITIES['hero-redwall-sentry'];
+
+  it('returns 0 with no mice', () => {
+    expect(ability.combatBonus([{ type: 'squirrel' }])).toBe(0);
+  });
+
+  it('counts mice only', () => {
+    const placements = [{ type: 'mouse' }, { type: 'mouse' }, { type: 'food' }];
+    expect(ability.combatBonus(placements)).toBe(2);
+  });
+});
+
+describe('hero-guerilla-scout combatVerminReduction', () => {
+  const ability = ABILITIES['hero-guerilla-scout'];
+
+  it('returns 0 with no squirrels', () => {
+    expect(ability.combatVerminReduction([{ type: 'mouse' }])).toBe(0);
+  });
+
+  it('counts squirrels only', () => {
+    const placements = [{ type: 'squirrel' }, { type: 'squirrel' }, { type: 'mouse' }];
+    expect(ability.combatVerminReduction(placements)).toBe(2);
+  });
+});
+
+describe('hero-squirrel-1 onCombatWin', () => {
+  const ability = ABILITIES['hero-squirrel-1'];
+
+  it('returns squirrel count', () => {
+    const placements = [{ type: 'squirrel' }, { type: 'mouse' }, { type: 'squirrel' }];
+    expect(ability.onCombatWin(placements)).toBe(2);
+  });
+
+  it('returns 0 with no squirrels', () => {
+    expect(ability.onCombatWin([{ type: 'food' }])).toBe(0);
+  });
+});
+
+describe('calculatePower / getVerminReduction / getCombatWinFood use merged ABILITIES', () => {
+  function makePlayer(placements = {}) {
+    return {
+      band: [],
+      champion: { abilities: [] },
+      abilityPlacements: {},
+      placements,
+    };
+  }
+
+  it('calculatePower adds combatBonus from hero-redwall-sentry', () => {
+    const player = makePlayer({ 'hero-redwall-sentry': [{ type: 'mouse' }, { type: 'mouse' }] });
+    // base power = 0 (empty band), bonus = 2 mice
+    expect(calculatePower(player)).toBe(2);
+  });
+
+  it('getVerminReduction sums combatVerminReduction', () => {
+    const player = makePlayer({ 'hero-guerilla-scout': [{ type: 'squirrel' }] });
+    expect(getVerminReduction(player)).toBe(1);
+  });
+
+  it('getCombatWinFood sums onCombatWin bonuses', () => {
+    const player = makePlayer({ 'hero-squirrel-1': [{ type: 'squirrel' }, { type: 'squirrel' }] });
+    expect(getCombatWinFood(player)).toBe(2);
   });
 });
