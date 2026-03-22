@@ -166,6 +166,30 @@ describe('cancelActionAction', () => {
     expect(p.band).toEqual(['mouse', 'mouse']);
     expect(p.bag).toEqual(['food']);
   });
+
+  it('resets currentLocation to null when not busted', () => {
+    const s = makeState({
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1' },
+        currentLocation: 'hero-1',
+      })],
+    });
+    const result = cancelActionAction(s);
+    expect(result.players[0].currentLocation).toBeNull();
+  });
+
+  it('resets currentLocation to null when busted', () => {
+    const s = makeState({
+      players: [makePlayer({
+        action: { type: 'recruit', targetId: 'hero-1' },
+        busted: true,
+        currentLocation: 'hero-1',
+        band: ['mouse'],
+      })],
+    });
+    const result = cancelActionAction(s);
+    expect(result.players[0].currentLocation).toBeNull();
+  });
 });
 
 // ── drawCubeAction ──────────────────────────────────
