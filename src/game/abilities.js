@@ -78,12 +78,9 @@ export const ABILITIES = {
     },
   },
 
-  // Salamandastron: passive combat modifier — no active action for now
-  'loc-salamandastron': {
-    onAction(ctx) {
-      ctx.setMessage('Salamandastron: Combat modifier — no action to take right now.');
-    },
-  },
+  // Salamandastron: combat actions here reduce required vermin draws by 1
+  // (implemented in actions.js useLocationActionAction)
+  'loc-salamandastron': {},
 
   // Mossflower Border: Draw 1 cube from bag
   'loc-mossflower-border': {

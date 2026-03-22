@@ -126,8 +126,53 @@ export function spreadVermin(state, count) {
     log.push(`${label}: +1 vermin`);
   }
 
-  const conquestDelta = hadOverflow ? 1 : 0;
+  let conquestDelta = hadOverflow ? 1 : 0;
+  if (conquestDelta > 0 && isClunyFortressActive(state)) {
+    conquestDelta += 1;
+    log.push('Cluny Siege Engine: +1 conquest');
+  }
   return { cardSlots, conquestDelta, log };
+}
+
+/** Check if Cluny Siege Engine fortress is active (not cleared). */
+function isClunyFortressActive(state) {
+  return state.horde?.fortress?.id === 'fort-cluny-siege' && !state.horde.fortressCleared;
+}
+
+/** Apply fortress night abilities (e.g. Marsh Bridge). */
+function applyFortressNight(state, cardSlots) {
+  const fortress = state.horde?.fortress;
+  if (!fortress || state.horde.fortressCleared) return { cardSlots, fortressMsg: '' };
+
+  if (fortress.id === 'fort-marsh-bridge') {
+    const targets = [...state.adventureRow, ...state.discoveredLocations]
+      .filter((c) => c.type === 'location' || c.type === 'hero');
+    if (targets.length === 0) return { cardSlots, fortressMsg: '' };
+
+    let weakest = null;
+    let minVermin = Infinity;
+    for (const target of targets) {
+      const slots = cardSlots[target.id] ?? [];
+      const verminCount = slots.filter((c) => c.type === 'vermin').length;
+      if (verminCount < minVermin) {
+        minVermin = verminCount;
+        weakest = target;
+      }
+    }
+
+    if (!weakest) return { cardSlots, fortressMsg: '' };
+
+    const limit = weakest.verminLimit ?? weakest.slots ?? Infinity;
+    if (minVermin >= limit) {
+      return { cardSlots, fortressMsg: `${fortress.name}: ${weakest.name} is full, no vermin added.` };
+    }
+
+    const newSlots = { ...cardSlots };
+    newSlots[weakest.id] = [...(newSlots[weakest.id] ?? []), { type: 'vermin' }];
+    return { cardSlots: newSlots, fortressMsg: `${fortress.name}: +1 vermin to ${weakest.name} (weakest).` };
+  }
+
+  return { cardSlots, fortressMsg: '' };
 }
 
 function spawnNightVermin(state) {
@@ -137,31 +182,49 @@ function spawnNightVermin(state) {
   return { cardSlots, conquest: newConquest, nightMessage: message };
 }
 
-function applyVillainNight(state, conquest) {
+function applyVillainNight(state, conquest, cardSlots) {
   const villain = state.horde?.villain;
-  if (!villain) return { conquest, villainMsg: '' };
+  if (!villain) return { conquest, cardSlots, villainMsg: '' };
 
   switch (villain.id) {
     case 'vil-cluny':
-      return { conquest: conquest + 1, villainMsg: `${villain.name}: +1 conquest.` };
-    case 'vil-tsarmina':
-      return { conquest: conquest + 1, villainMsg: `${villain.name}: +1 conquest.` };
+      return { conquest: conquest + 1, cardSlots, villainMsg: `${villain.name}: +1 conquest.` };
+    case 'vil-tsarmina': {
+      const targets = [...state.adventureRow, ...state.discoveredLocations]
+        .filter((c) => c.type === 'location' || c.type === 'hero');
+      const newSlots = { ...cardSlots };
+      const log = [];
+      for (const target of targets) {
+        const limit = target.verminLimit ?? target.slots ?? Infinity;
+        const slots = newSlots[target.id] ?? [];
+        const currentVermin = slots.filter((c) => c.type === 'vermin').length;
+        if (currentVermin >= limit) {
+          log.push(`${target.name}: full`);
+          continue;
+        }
+        newSlots[target.id] = [...slots, { type: 'vermin' }];
+        log.push(`${target.name}: +1 vermin`);
+      }
+      const msg = `${villain.name}: +1 vermin to every quest. ${log.join('; ')}.`;
+      return { conquest, cardSlots: newSlots, villainMsg: msg };
+    }
     default:
-      return { conquest, villainMsg: '' };
+      return { conquest, cardSlots, villainMsg: '' };
   }
 }
 
-/** Enter night: shared vermin spawn + villain, reset all players' nightReturns. */
+/** Enter night: shared vermin spawn + fortress + villain, reset all players' nightReturns. */
 export function enterNightAllPlayers(s) {
   const spawn = spawnNightVermin(s);
-  const villain = applyVillainNight(s, spawn.conquest);
-  const messages = [spawn.nightMessage, villain.villainMsg, `Conquest now ${villain.conquest}/10.`].filter(Boolean).join(' ');
+  const fortress = applyFortressNight(s, spawn.cardSlots);
+  const villain = applyVillainNight(s, spawn.conquest, fortress.cardSlots);
+  const messages = [spawn.nightMessage, fortress.fortressMsg, villain.villainMsg].filter(Boolean).join(' ');
 
   let result = setMessage({
     ...s,
     phase: 'night',
     activePlayerIndex: 0,
-    cardSlots: spawn.cardSlots,
+    cardSlots: villain.cardSlots,
     conquest: villain.conquest,
   }, messages);
 
@@ -186,8 +249,10 @@ export function resolveNightEnd(s) {
     delete newCardSlots[removed.id];
 
     if (verminCount > 0 && removed.type !== 'villain' && removed.type !== 'fortress') {
-      newConquest += verminCount;
-      log.push(`${removed.name} removed with ${verminCount} vermin → conquest +${verminCount}`);
+      const clunyBonus = isClunyFortressActive(s) ? 1 : 0;
+      newConquest += verminCount + clunyBonus;
+      const bonusNote = clunyBonus > 0 ? ` (+1 Cluny Siege Engine)` : '';
+      log.push(`${removed.name} removed with ${verminCount} vermin → conquest +${verminCount + clunyBonus}${bonusNote}`);
     } else if (verminCount > 0) {
       log.push(`${removed.name} removed (vermin discarded)`);
     } else {
